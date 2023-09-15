@@ -1,0 +1,1 @@
+# MyCoverAi Server Side SDK

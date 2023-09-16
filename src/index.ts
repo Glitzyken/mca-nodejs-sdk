@@ -3,7 +3,14 @@
 import axios, { AxiosInstance } from "axios";
 import { filter, includes, forEach, isEmpty, values } from "lodash";
 
-import { ACTIVE_PRODUCTS_IDS, PRODUCT_CATEGORIES } from "./constant";
+import { Form } from "./products/shared/types";
+import {
+  ACTIVE_PRODUCTS_IDS,
+  PRODUCT_CATEGORIES,
+  purchaseEndpoints,
+  productsEndpoints,
+} from "./products/shared/constant";
+import activeProducts from "./products";
 
 class MyCoverAi {
   constructor() {}
@@ -13,10 +20,9 @@ class MyCoverAi {
   private static selectedCategory: string;
   private static client: AxiosInstance;
 
-  static PRODUCT_ID = ACTIVE_PRODUCTS_IDS;
-  static PRODUCT_CATEGORY = PRODUCT_CATEGORIES;
-  static buyInsurance: { form: any; buy: Function };
-  // this.buyInsurance = { form: {}, buy: () => this.buy() };
+  static products = activeProducts;
+  static PRODUCTS_IDS = ACTIVE_PRODUCTS_IDS;
+  static PRODUCT_CATEGORIES = PRODUCT_CATEGORIES;
 
   // Setters
   static setApiKey(key: string) {
@@ -36,7 +42,7 @@ class MyCoverAi {
   static setProducts(ids: string[]) {
     const hash: { [key: string]: string } = {};
 
-    forEach(MyCoverAi.PRODUCT_ID, function (value, key) {
+    forEach(MyCoverAi.PRODUCTS_IDS, function (value, key) {
       if (ids.includes(value)) {
         hash[key] = value;
       }
@@ -54,7 +60,9 @@ class MyCoverAi {
   // Methods
   static async getFullProducts() {
     try {
-      const response = await MyCoverAi.client.get("/products/get-all-products");
+      const response = await MyCoverAi.client.get(
+        productsEndpoints.getAllProducts
+      );
       const { products } = response.data.data;
 
       // if product ids are provided, filter the response and return only the selected products
@@ -74,13 +82,21 @@ class MyCoverAi {
       }
 
       return products;
-    } catch (err: any) {
-      return MyCoverAi.handleError(err);
+    } catch (error: any) {
+      return MyCoverAi.handleError(error);
     }
   }
 
-  private static buy() {
-    console.log("Buying...");
+  static async purchase(productId: string, form: Form) {
+    const endpoint = purchaseEndpoints[productId];
+    console.log(MyCoverAi.products.wellaHealthMalariaCover.form);
+
+    try {
+      const { data } = await MyCoverAi.client.post(endpoint, form);
+      return data;
+    } catch (error) {
+      return MyCoverAi.handleError(error);
+    }
   }
 
   private static handleError(error: any) {
@@ -100,24 +116,83 @@ class MyCoverAi {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const myCoverAi = MyCoverAi; // similar to import myCoverAi from '@mycoverai/nodejs';
+import CustodianComprehensiveForm from "./products/custodianComprehensive/custodianComprehensive.form.interface"; // similar to import { CustodianComprehensiveForm } from '@mycoverai/nodejs';
+import WellaHealthMalariaCoverForm from "./products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
 
 const API_KEY = "MCASECK_TEST|72b61e4d-f58a-4d38-82b7-4d4629997605";
 myCoverAi.setApiKey(API_KEY);
 
-// myCoverAi.setApiKey(API_KEY).setCategory(MyCoverAi.PRODUCT_CATEGORY.Auto);
+// myCoverAi.setApiKey(API_KEY).setCategory(MyCoverAi.PRODUCT_CATEGORIES.Auto);
 myCoverAi.setProducts([
-  myCoverAi.PRODUCT_ID.HygeiaHybasic,
-  myCoverAi.PRODUCT_ID.HygeiaHyprime,
-  myCoverAi.PRODUCT_ID.MyCoverGeniusFlexiCare,
-  myCoverAi.PRODUCT_ID.MyCoverGeniusFlexiCareMini,
-  myCoverAi.PRODUCT_ID.WellaHealthMalariaCover,
+  myCoverAi.PRODUCTS_IDS.HygeiaHybasic,
+  myCoverAi.PRODUCTS_IDS.HygeiaHyprime,
+  myCoverAi.PRODUCTS_IDS.MyCoverGeniusFlexiCare,
+  myCoverAi.PRODUCTS_IDS.MyCoverGeniusFlexiCareMini,
+  myCoverAi.PRODUCTS_IDS.WellaHealthMalariaCover,
 ]);
 
 const getFullProducts = async () => {
   const allProducts = await myCoverAi.getFullProducts();
-  console.log(allProducts);
+  console.log({ allProducts });
 };
 
-getFullProducts();
+const buyWellaHealthMalaria = async () => {
+  const id = myCoverAi.PRODUCTS_IDS.WellaHealthMalariaCover;
+  const form: WellaHealthMalariaCoverForm = {
+    date_of_birth: "1978-05-04",
+    gender: "Male",
+    address: "14th street, Lagos",
+    image_url: "https://via.placeholder.com/300/09f/fff.png",
+    first_name: "Emerson",
+    last_name: "Craig",
+    email: "johndoe@gmail.com",
+    phone_number: "+2349026378299",
+    payment_plan: "Monthly",
+    product_id: "fab6bda1-b870-4648-8704-11c1802a51d0",
+  };
 
-// myCoverAi.buyInsurance.buy();
+  MyCoverAi.products.wellaHealthMalariaCover.form = form;
+
+  const result = await myCoverAi.purchase(id, form);
+  console.log({ result });
+};
+
+const buyCustodianComprehensive = async () => {
+  const id = myCoverAi.PRODUCTS_IDS.CustodianComprehensive;
+  // const { form } = myCoverAi.products.custodianComprehensive;
+  // form.first_name = "Kenneth";
+  // form.last_name = "Jimmy";
+  // form.email = "kenjimmy17@gmail.com";
+  // etc...
+
+  // or...
+  const form: CustodianComprehensiveForm = {
+    vehicle_make: "1",
+    vehicle_model: "218",
+    address: "close 4 festac town lagos",
+    insurance_start_date: "2022-12-08",
+    vehicle_registration_number: "akd543gf",
+    engine_number: "2GR0455283",
+    chassis_number: "JTNBK40K303034861",
+    vehicle_year_manufactured: "2019",
+    vehicle_type: "Suv",
+    vehicle_color: "RED",
+    vehicle_insurance_type: "Private",
+    vehicle_value: 3000000,
+    first_name: "peter",
+    last_name: "akinwumi",
+    email: "peter.akinwumi@gmail.com",
+    dob: "1987-04-28",
+    phone: "07064378577",
+    product_id: id,
+  };
+
+  myCoverAi.products.custodianComprehensive.form = form;
+
+  const result = await myCoverAi.purchase(id, form);
+  console.log(result);
+};
+
+// getFullProducts()
+// buyCustodianComprehensive();
+buyWellaHealthMalaria();

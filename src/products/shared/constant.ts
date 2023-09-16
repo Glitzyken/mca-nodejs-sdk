@@ -73,3 +73,16 @@ export const PRODUCT_CATEGORIES: {
   Travel: "Travel",
   CreditLife: "Credit Life",
 };
+
+// ENDPOINTS URLS
+export const purchaseEndpoints: any = {
+  /** Custodian Comprehensive */
+  "f1b14adb-f9ed-4541-894d-8ab137f048a2":
+    "/products/custodian/buy-comprehensive",
+  /**  Wella Health Malaria Cover */
+  "fab6bda1-b870-4648-8704-11c1802a51d0": "/products/wella/buy-health-malaria",
+};
+
+export const productsEndpoints = {
+  getAllProducts: "/products/get-all-products",
+};

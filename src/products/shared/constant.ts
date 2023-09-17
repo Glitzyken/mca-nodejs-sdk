@@ -86,3 +86,10 @@ export const purchaseEndpoints: any = {
 export const productsEndpoints = {
   getAllProducts: "/products/get-all-products",
 };
+
+export const auxiliaryEndpoints = {
+  getColors: "/color-list",
+  getGenders: "/genders",
+  getVehicleType: "/vehicle-body-types",
+  getManufactureYear: "/manufacture-year",
+};

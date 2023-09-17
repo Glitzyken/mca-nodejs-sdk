@@ -1,7 +1,7 @@
 // Following Sendgrid sdk pattern: https://docs.sendgrid.com/for-developers/sending-email/quickstart-nodejs
 
 import axios, { AxiosInstance } from "axios";
-import { filter, includes, forEach, isEmpty, values } from "lodash";
+import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
 
 import { Form } from "./products/shared/types";
 import {
@@ -9,6 +9,7 @@ import {
   PRODUCT_CATEGORIES,
   purchaseEndpoints,
   productsEndpoints,
+  auxiliaryEndpoints,
 } from "./products/shared/constant";
 import activeProducts from "./products";
 
@@ -21,6 +22,7 @@ class MyCoverAi {
   private static client: AxiosInstance;
 
   static products = activeProducts;
+  static auxiliaryData = auxiliaryEndpoints;
   static PRODUCTS_IDS = ACTIVE_PRODUCTS_IDS;
   static PRODUCT_CATEGORIES = PRODUCT_CATEGORIES;
 
@@ -58,6 +60,19 @@ class MyCoverAi {
   }
 
   // Methods
+  static async purchase(productId: string, form: Form) {
+    const endpoint = purchaseEndpoints[productId];
+
+    if (!endpoint) throw new Error("Invalid ID");
+
+    try {
+      const { data } = await MyCoverAi.client.post(endpoint, form);
+      return data;
+    } catch (error) {
+      return MyCoverAi.handleError(error);
+    }
+  }
+
   static async getFullProducts() {
     try {
       const response = await MyCoverAi.client.get(
@@ -87,12 +102,16 @@ class MyCoverAi {
     }
   }
 
-  static async purchase(productId: string, form: Form) {
-    const endpoint = purchaseEndpoints[productId];
-    console.log(MyCoverAi.products.wellaHealthMalariaCover.form);
+  static async getComplementaryData(type: string) {
+    const isValidType = chain(auxiliaryEndpoints)
+      .values()
+      .includes(type)
+      .value();
+
+    if (!isValidType) throw new Error("Invalid type");
 
     try {
-      const { data } = await MyCoverAi.client.post(endpoint, form);
+      const { data } = await MyCoverAi.client.get(type);
       return data;
     } catch (error) {
       return MyCoverAi.handleError(error);
@@ -134,6 +153,14 @@ myCoverAi.setProducts([
 const getFullProducts = async () => {
   const allProducts = await myCoverAi.getFullProducts();
   console.log({ allProducts });
+};
+
+const getComplementaryData = async () => {
+  const data = await myCoverAi.getComplementaryData(
+    myCoverAi.auxiliaryData.getVehicleType
+  );
+
+  console.log({ data });
 };
 
 const buyWellaHealthMalaria = async () => {
@@ -194,5 +221,6 @@ const buyCustodianComprehensive = async () => {
 };
 
 // getFullProducts()
+getComplementaryData();
 // buyCustodianComprehensive();
-buyWellaHealthMalaria();
+// buyWellaHealthMalaria();

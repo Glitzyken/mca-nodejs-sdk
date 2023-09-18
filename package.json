@@ -1,7 +1,7 @@
 {
   "name": "mca-api-sdk-sample",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "A laboratory Node.js SDK project for MyCover.ai",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -12,8 +12,13 @@
     "build": "tsup",
     "dev": "ts-node src/index"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "demo",
+    "mycoverai",
+    "insurance",
+    "sdk"
+  ],
+  "author": "Kenneth Jimmy",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.5.0",

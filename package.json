@@ -1,5 +1,5 @@
 {
-  "name": "mca-api-sdk-sample",
+  "name": "@mycoverai/lab-mca-nodejs-sdk",
   "version": "0.1.0",
   "description": "A laboratory Node.js SDK project for MyCover.ai",
   "main": "./dist/index.js",

@@ -3,10 +3,12 @@
 import axios, { AxiosInstance } from "axios";
 import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
 
+import CustodianComprehensiveForm from "./products/custodianComprehensive/custodianComprehensive.form.interface";
+import WellaHealthMalariaCoverForm from "./products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
 import { Form } from "./products/shared/types";
 import {
-  ACTIVE_PRODUCTS_IDS,
-  PRODUCT_CATEGORIES,
+  activeProductsIds,
+  productsCategories,
   purchaseEndpoints,
   productsEndpoints,
   auxiliaryEndpoints,
@@ -23,8 +25,8 @@ class MyCoverAi {
 
   static products = activeProducts;
   static auxiliaryData = auxiliaryEndpoints;
-  static PRODUCTS_IDS = ACTIVE_PRODUCTS_IDS;
-  static PRODUCT_CATEGORIES = PRODUCT_CATEGORIES;
+  static productsIds = activeProductsIds;
+  static productsCategories = productsCategories;
 
   // Setters
   static setApiKey(key: string) {
@@ -44,7 +46,7 @@ class MyCoverAi {
   static setProducts(ids: string[]) {
     const hash: { [key: string]: string } = {};
 
-    forEach(MyCoverAi.PRODUCTS_IDS, function (value, key) {
+    forEach(MyCoverAi.productsIds, function (value, key) {
       if (ids.includes(value)) {
         hash[key] = value;
       }
@@ -133,94 +135,5 @@ class MyCoverAi {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const myCoverAi = MyCoverAi; // similar to import myCoverAi from '@mycoverai/nodejs';
-import CustodianComprehensiveForm from "./products/custodianComprehensive/custodianComprehensive.form.interface"; // similar to import { CustodianComprehensiveForm } from '@mycoverai/nodejs';
-import WellaHealthMalariaCoverForm from "./products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
-
-const API_KEY = "MCASECK_TEST|72b61e4d-f58a-4d38-82b7-4d4629997605";
-myCoverAi.setApiKey(API_KEY);
-
-// myCoverAi.setApiKey(API_KEY).setCategory(MyCoverAi.PRODUCT_CATEGORIES.Auto);
-myCoverAi.setProducts([
-  myCoverAi.PRODUCTS_IDS.HygeiaHybasic,
-  myCoverAi.PRODUCTS_IDS.HygeiaHyprime,
-  myCoverAi.PRODUCTS_IDS.MyCoverGeniusFlexiCare,
-  myCoverAi.PRODUCTS_IDS.MyCoverGeniusFlexiCareMini,
-  myCoverAi.PRODUCTS_IDS.WellaHealthMalariaCover,
-]);
-
-const getFullProducts = async () => {
-  const allProducts = await myCoverAi.getFullProducts();
-  console.log({ allProducts });
-};
-
-const getComplementaryData = async () => {
-  const data = await myCoverAi.getComplementaryData(
-    myCoverAi.auxiliaryData.getVehicleType
-  );
-
-  console.log({ data });
-};
-
-const buyWellaHealthMalaria = async () => {
-  const id = myCoverAi.PRODUCTS_IDS.WellaHealthMalariaCover;
-  const form: WellaHealthMalariaCoverForm = {
-    date_of_birth: "1978-05-04",
-    gender: "Male",
-    address: "14th street, Lagos",
-    image_url: "https://via.placeholder.com/300/09f/fff.png",
-    first_name: "Emerson",
-    last_name: "Craig",
-    email: "johndoe@gmail.com",
-    phone_number: "+2349026378299",
-    payment_plan: "Monthly",
-    product_id: "fab6bda1-b870-4648-8704-11c1802a51d0",
-  };
-
-  MyCoverAi.products.wellaHealthMalariaCover.form = form;
-
-  const result = await myCoverAi.purchase(id, form);
-  console.log({ result });
-};
-
-const buyCustodianComprehensive = async () => {
-  const id = myCoverAi.PRODUCTS_IDS.CustodianComprehensive;
-  // const { form } = myCoverAi.products.custodianComprehensive;
-  // form.first_name = "Kenneth";
-  // form.last_name = "Jimmy";
-  // form.email = "kenjimmy17@gmail.com";
-  // etc...
-
-  // or...
-  const form: CustodianComprehensiveForm = {
-    vehicle_make: "1",
-    vehicle_model: "218",
-    address: "close 4 festac town lagos",
-    insurance_start_date: "2022-12-08",
-    vehicle_registration_number: "akd543gf",
-    engine_number: "2GR0455283",
-    chassis_number: "JTNBK40K303034861",
-    vehicle_year_manufactured: "2019",
-    vehicle_type: "Suv",
-    vehicle_color: "RED",
-    vehicle_insurance_type: "Private",
-    vehicle_value: 3000000,
-    first_name: "peter",
-    last_name: "akinwumi",
-    email: "peter.akinwumi@gmail.com",
-    dob: "1987-04-28",
-    phone: "07064378577",
-    product_id: id,
-  };
-
-  myCoverAi.products.custodianComprehensive.form = form;
-
-  const result = await myCoverAi.purchase(id, form);
-  console.log(result);
-};
-
-// getFullProducts()
-getComplementaryData();
-// buyCustodianComprehensive();
-// buyWellaHealthMalaria();
+export { CustodianComprehensiveForm, WellaHealthMalariaCoverForm };
+export default MyCoverAi;

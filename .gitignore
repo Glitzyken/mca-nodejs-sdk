@@ -7,4 +7,5 @@
 # Build files
 /dist
 model.js
+example.ts
 .vscode

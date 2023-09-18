@@ -1,4 +1,4 @@
-export const ACTIVE_PRODUCTS_IDS: {
+export const activeProductsIds: {
   WellaHealthMalariaCover: "fab6bda1-b870-4648-8704-11c1802a51d0";
   TangerineThirdpartyCar: "8179effb-e73b-433c-b44e-30625366d24e";
   TangerineDevice: "2e87194d-5eb1-48b6-8837-a9cbc78d4ec3";
@@ -52,7 +52,7 @@ export const ACTIVE_PRODUCTS_IDS: {
   CustodianComprehensive: "f1b14adb-f9ed-4541-894d-8ab137f048a2",
 };
 
-export const PRODUCT_CATEGORIES: {
+export const productsCategories: {
   Package: "Package";
   Gadget: "Gadget";
   AgencyBanking: "Agency Banking";

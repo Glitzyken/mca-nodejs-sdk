@@ -135,7 +135,7 @@ class MyCoverAi {
 
     try {
       const { data } = await MyCoverAi.client.get(type);
-      return MyCoverAi.handleSuccessResponse("Data fetched", 201, data.data);
+      return MyCoverAi.handleSuccessResponse("Data fetched", 200, data.data);
     } catch (error) {
       return MyCoverAi.handleFailResponse(error);
     }

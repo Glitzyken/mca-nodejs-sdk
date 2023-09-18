@@ -22,4 +22,4 @@ then...
 npm link
 ```
 
-To continue, clone this repo and follow through with the README.
+To continue, clone [this repo](https://github.com/Glitzyken/test-mca-nodejs-sdk) and follow through with the README.

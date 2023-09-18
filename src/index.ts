@@ -6,6 +6,7 @@ import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
 import CustodianComprehensiveForm from "./products/custodianComprehensive/custodianComprehensive.form.interface";
 import WellaHealthMalariaCoverForm from "./products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
 import { Form } from "./products/shared/types";
+import { MCAResponse } from "./products/shared/types";
 import {
   activeProductsIds,
   productsCategories,
@@ -14,15 +15,6 @@ import {
   auxiliaryEndpoints,
 } from "./products/shared/constant";
 import activeProducts from "./products";
-
-type MCAResponse = {
-  responseCode: number;
-  responseText: string;
-  statusCode: number;
-  statusText?: string;
-  message?: string;
-  data?: any;
-};
 
 class MyCoverAi {
   constructor() {}

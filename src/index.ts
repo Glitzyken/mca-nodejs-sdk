@@ -1,6 +1,6 @@
 // Following Sendgrid sdk pattern: https://docs.sendgrid.com/for-developers/sending-email/quickstart-nodejs
 
-import axios, { AxiosInstance } from "axios";
+import axios from "axios";
 import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
 
 import CustodianComprehensiveForm from "./products/custodianComprehensive/custodianComprehensive.form.interface";
@@ -15,13 +15,25 @@ import {
 } from "./products/shared/constant";
 import activeProducts from "./products";
 
+type MCAResponse = {
+  responseCode: number;
+  responseText: string;
+  statusCode: number;
+  statusText?: string;
+  message?: string;
+  data?: any;
+};
+
 class MyCoverAi {
   constructor() {}
   // props
+  private static baseURL = "https://staging.api.mycover.ai/v1";
   private static apiKey: string;
   private static selectedProductsIds: { [key: string]: string };
   private static selectedCategory: string;
-  private static client: AxiosInstance;
+  private static client = axios.create({
+    baseURL: MyCoverAi.baseURL,
+  });
 
   static products = activeProducts;
   static auxiliaryData = auxiliaryEndpoints;
@@ -32,7 +44,7 @@ class MyCoverAi {
   static setApiKey(key: string) {
     MyCoverAi.apiKey = key;
     MyCoverAi.client = axios.create({
-      baseURL: "https://staging.api.mycover.ai/v1",
+      baseURL: MyCoverAi.baseURL,
       headers: {
         common: {
           Authorization: MyCoverAi.apiKey ? `Bearer ${MyCoverAi.apiKey}` : null,
@@ -69,9 +81,13 @@ class MyCoverAi {
 
     try {
       const { data } = await MyCoverAi.client.post(endpoint, form);
-      return data;
+      return MyCoverAi.handleSuccessResponse(
+        "Policy purchased",
+        201,
+        data.data
+      );
     } catch (error) {
-      return MyCoverAi.handleError(error);
+      return MyCoverAi.handleFailResponse(error);
     }
   }
 
@@ -81,26 +97,39 @@ class MyCoverAi {
         productsEndpoints.getAllProducts
       );
       const { products } = response.data.data;
+      let filteredProducts: any[];
 
       // if product ids are provided, filter the response and return only the selected products
       if (!isEmpty(MyCoverAi.selectedProductsIds)) {
         const selectedProductsIds = values(MyCoverAi.selectedProductsIds);
-        return filter(products, (obj) =>
+        filteredProducts = filter(products, (obj) =>
           includes(values(selectedProductsIds), obj.id)
+        );
+
+        return MyCoverAi.handleSuccessResponse(
+          "All products",
+          200,
+          filteredProducts
         );
       }
 
       // if categories are provided, filter the response and return only products under the given category
       if (MyCoverAi.selectedCategory) {
-        return filter(
+        filteredProducts = filter(
           products,
           (obj) => obj.productCategory.name === MyCoverAi.selectedCategory
         );
+
+        return MyCoverAi.handleSuccessResponse(
+          "All products",
+          200,
+          filteredProducts
+        );
       }
 
-      return products;
+      return MyCoverAi.handleSuccessResponse("All products", 200, products);
     } catch (error: any) {
-      return MyCoverAi.handleError(error);
+      return MyCoverAi.handleFailResponse(error);
     }
   }
 
@@ -114,18 +143,31 @@ class MyCoverAi {
 
     try {
       const { data } = await MyCoverAi.client.get(type);
-      return data;
+      return MyCoverAi.handleSuccessResponse("Data fetched", 201, data.data);
     } catch (error) {
-      return MyCoverAi.handleError(error);
+      return MyCoverAi.handleFailResponse(error);
     }
   }
 
-  private static handleError(error: any) {
+  private static handleSuccessResponse(
+    message: string,
+    statusCode: number,
+    data: any
+  ): MCAResponse {
+    return {
+      responseCode: 1,
+      responseText: message,
+      statusCode,
+      data,
+    };
+  }
+
+  private static handleFailResponse(error: any): MCAResponse {
     if (axios.isAxiosError(error)) {
       return {
-        responseCode: error?.response?.data?.responseCode,
+        responseCode: 0,
         responseText: error?.response?.data?.responseText,
-        status: error?.response?.status,
+        statusCode: error?.response?.status as number,
         statusText: error?.response?.statusText,
         message: error?.response?.data?.responseText,
       };

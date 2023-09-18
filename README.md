@@ -1,4 +1,4 @@
-# Lab MyCover.ai Node.js SDK
+# Lab: MyCover.ai Node.js SDK
 
 A laboratory Node.js SDK project for MyCover.ai
 
@@ -10,7 +10,13 @@ Run:
 npm install
 ```
 
-Then:
+then...
+
+```bash
+npm run build
+```
+
+then...
 
 ```bash
 npm link

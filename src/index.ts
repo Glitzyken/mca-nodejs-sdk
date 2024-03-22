@@ -1,5 +1,3 @@
-// Following Sendgrid sdk pattern: https://docs.sendgrid.com/for-developers/sending-email/quickstart-nodejs
-
 import axios from "axios";
 import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
 
@@ -19,7 +17,7 @@ import activeProducts from "./products";
 class MyCoverAi {
   constructor() {}
   // props
-  private static baseURL = "https://staging.api.mycover.ai/v1";
+  private static baseURL = "https://api.mycover.ai/v1";
   private static apiKey: string;
   private static selectedProductsIds: { [key: string]: string };
   private static selectedCategory: string;

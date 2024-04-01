@@ -1,9 +1,9 @@
 import wellaHealthMalariaCover from "./wellaHealthMalariaCover/wellaHealthMalariaCover";
-import custodianComprehensive from "./custodianComprehensive/custodianComprehensive";
+import myCoverGeniusFlexiCare from "./myCoverGeniusFlexiCare/myCoverGeniusFlexiCare";
 
 const activeProducts = {
   wellaHealthMalariaCover,
-  custodianComprehensive,
+  myCoverGeniusFlexiCare,
 };
 
 export default activeProducts;

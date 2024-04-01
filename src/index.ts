@@ -1,8 +1,9 @@
 import axios from "axios";
 import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
 
-import CustodianComprehensiveForm from "./products/custodianComprehensive/custodianComprehensive.form.interface";
+import MyCoverGeniusFlexiCareForm from "./products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface";
 import WellaHealthMalariaCoverForm from "./products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
+
 import { Form } from "./products/shared/types";
 import { MCAResponse } from "./products/shared/types";
 import {
@@ -63,7 +64,6 @@ class MyCoverAi {
     return this;
   }
 
-  // Methods
   static async purchase(productId: string, form: Form) {
     const endpoint = purchaseEndpoints[productId];
 
@@ -81,41 +81,38 @@ class MyCoverAi {
     }
   }
 
-  static async getFullProducts() {
+  static async getProducts() {
     try {
       const response = await MyCoverAi.client.get(
         productsEndpoints.getAllProducts
       );
-      const { products } = response.data.data;
-      let filteredProducts: any[];
+
+      let products = response.data.data?.products;
 
       // if product ids are provided, filter the response and return only the selected products
       if (!isEmpty(MyCoverAi.selectedProductsIds)) {
         const selectedProductsIds = values(MyCoverAi.selectedProductsIds);
-        filteredProducts = filter(products, (obj) =>
+        products = filter(products, (obj) =>
           includes(values(selectedProductsIds), obj.id)
         );
 
-        return MyCoverAi.handleSuccessResponse(
-          "All products",
-          200,
-          filteredProducts
-        );
+        return MyCoverAi.handleSuccessResponse("All products", 200, products);
       }
 
       // if categories are provided, filter the response and return only products under the given category
       if (MyCoverAi.selectedCategory) {
-        filteredProducts = filter(
+        products = filter(
           products,
           (obj) => obj.productCategory.name === MyCoverAi.selectedCategory
         );
 
-        return MyCoverAi.handleSuccessResponse(
-          "All products",
-          200,
-          filteredProducts
-        );
+        return MyCoverAi.handleSuccessResponse("All products", 200, products);
       }
+
+      const allProductsIds = values(MyCoverAi.productsIds);
+      products = filter(products, (obj) =>
+        includes(values(allProductsIds), obj.id)
+      );
 
       return MyCoverAi.handleSuccessResponse("All products", 200, products);
     } catch (error: any) {
@@ -167,5 +164,5 @@ class MyCoverAi {
   }
 }
 
-export { CustodianComprehensiveForm, WellaHealthMalariaCoverForm };
+export { MyCoverGeniusFlexiCareForm, WellaHealthMalariaCoverForm };
 export default MyCoverAi;

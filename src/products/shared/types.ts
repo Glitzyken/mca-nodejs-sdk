@@ -1,7 +1,7 @@
+import MyCoverGeniusFlexiCareForm from "../myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface";
 import WellaHealthMalariaCoverForm from "../wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
-import CustodianComprehensiveForm from "../custodianComprehensive/custodianComprehensive.form.interface";
 
-export type Form = WellaHealthMalariaCoverForm | CustodianComprehensiveForm;
+export type Form = MyCoverGeniusFlexiCareForm | WellaHealthMalariaCoverForm;
 
 export type MCAResponse = {
   responseCode: number;

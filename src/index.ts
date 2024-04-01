@@ -27,7 +27,6 @@ class MyCoverAi {
   });
 
   static products = activeProducts;
-  static auxiliaryData = auxiliaryEndpoints;
   static productsIds = activeProductsIds;
   static productsCategories = productsCategories;
 

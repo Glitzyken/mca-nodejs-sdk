@@ -1,5 +1,5 @@
-import MyCoverGeniusFlexiCareForm from "../myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface";
-import WellaHealthMalariaCoverForm from "../wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
+import MyCoverGeniusFlexiCareForm from '../myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
+import WellaHealthMalariaCoverForm from '../wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
 
 export type Form = MyCoverGeniusFlexiCareForm | WellaHealthMalariaCoverForm;
 

@@ -1,9 +1,9 @@
-import { activeProductsIds } from "../shared/constant";
-import MyCoverGeniusFlexiCareForm from "./myCoverGeniusFlexiCare.form.interface";
+import { activeProductsIds } from '../shared/constant';
+import MyCoverGeniusFlexiCareForm from './myCoverGeniusFlexiCare.form.interface';
 
 const myCoverGeniusFlexiCare = {
   id: activeProductsIds.MyCoverGeniusFlexiCare,
-  name: "MyCoverGenius FlexiCare",
+  name: 'MyCoverGenius FlexiCare',
   form: <MyCoverGeniusFlexiCareForm>{},
 };
 

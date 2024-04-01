@@ -1,5 +1,5 @@
-import wellaHealthMalariaCover from "./wellaHealthMalariaCover/wellaHealthMalariaCover";
-import myCoverGeniusFlexiCare from "./myCoverGeniusFlexiCare/myCoverGeniusFlexiCare";
+import wellaHealthMalariaCover from './wellaHealthMalariaCover/wellaHealthMalariaCover';
+import myCoverGeniusFlexiCare from './myCoverGeniusFlexiCare/myCoverGeniusFlexiCare';
 
 const activeProducts = {
   wellaHealthMalariaCover,

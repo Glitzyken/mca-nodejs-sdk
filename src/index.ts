@@ -1,24 +1,24 @@
-import axios from "axios";
-import { filter, includes, forEach, isEmpty, values, chain } from "lodash";
+import axios from 'axios';
+import { filter, includes, forEach, isEmpty, values, chain } from 'lodash';
 
-import MyCoverGeniusFlexiCareForm from "./products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface";
-import WellaHealthMalariaCoverForm from "./products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface";
+import MyCoverGeniusFlexiCareForm from './products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
+import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
 
-import { Form } from "./products/shared/types";
-import { MCAResponse } from "./products/shared/types";
+import { Form } from './products/shared/types';
+import { MCAResponse } from './products/shared/types';
 import {
   activeProductsIds,
   productsCategories,
   purchaseEndpoints,
   productsEndpoints,
   auxiliaryEndpoints,
-} from "./products/shared/constant";
-import activeProducts from "./products";
+} from './products/shared/constant';
+import activeProducts from './products';
 
 class MyCoverAi {
   constructor() {}
   // props
-  private static baseURL = "https://api.mycover.ai/v1";
+  private static baseURL = 'https://api.mycover.ai/v1';
   private static apiKey: string;
   private static selectedProductsIds: { [key: string]: string };
   private static selectedCategory: string;
@@ -67,14 +67,14 @@ class MyCoverAi {
   static async purchase(productId: string, form: Form) {
     const endpoint = purchaseEndpoints[productId];
 
-    if (!endpoint) throw new Error("Invalid ID");
+    if (!endpoint) throw new Error('Invalid ID');
 
     try {
       const { data } = await MyCoverAi.client.post(endpoint, form);
       return MyCoverAi.handleSuccessResponse(
-        "Policy purchased",
+        'Policy purchased',
         201,
-        data.data
+        data.data,
       );
     } catch (error) {
       return MyCoverAi.handleFailResponse(error);
@@ -84,7 +84,7 @@ class MyCoverAi {
   static async getProducts() {
     try {
       const response = await MyCoverAi.client.get(
-        productsEndpoints.getAllProducts
+        productsEndpoints.getAllProducts,
       );
 
       let products = response.data.data?.products;
@@ -93,28 +93,28 @@ class MyCoverAi {
       if (!isEmpty(MyCoverAi.selectedProductsIds)) {
         const selectedProductsIds = values(MyCoverAi.selectedProductsIds);
         products = filter(products, (obj) =>
-          includes(values(selectedProductsIds), obj.id)
+          includes(values(selectedProductsIds), obj.id),
         );
 
-        return MyCoverAi.handleSuccessResponse("All products", 200, products);
+        return MyCoverAi.handleSuccessResponse('All products', 200, products);
       }
 
       // if categories are provided, filter the response and return only products under the given category
       if (MyCoverAi.selectedCategory) {
         products = filter(
           products,
-          (obj) => obj.productCategory.name === MyCoverAi.selectedCategory
+          (obj) => obj.productCategory.name === MyCoverAi.selectedCategory,
         );
 
-        return MyCoverAi.handleSuccessResponse("All products", 200, products);
+        return MyCoverAi.handleSuccessResponse('All products', 200, products);
       }
 
       const allProductsIds = values(MyCoverAi.productsIds);
       products = filter(products, (obj) =>
-        includes(values(allProductsIds), obj.id)
+        includes(values(allProductsIds), obj.id),
       );
 
-      return MyCoverAi.handleSuccessResponse("All products", 200, products);
+      return MyCoverAi.handleSuccessResponse('All products', 200, products);
     } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
@@ -126,11 +126,11 @@ class MyCoverAi {
       .includes(type)
       .value();
 
-    if (!isValidType) throw new Error("Invalid type");
+    if (!isValidType) throw new Error('Invalid type');
 
     try {
       const { data } = await MyCoverAi.client.get(type);
-      return MyCoverAi.handleSuccessResponse("Data fetched", 200, data.data);
+      return MyCoverAi.handleSuccessResponse('Data fetched', 200, data.data);
     } catch (error) {
       return MyCoverAi.handleFailResponse(error);
     }
@@ -139,7 +139,7 @@ class MyCoverAi {
   private static handleSuccessResponse(
     message: string,
     statusCode: number,
-    data: any
+    data: any,
   ): MCAResponse {
     return {
       responseCode: 1,

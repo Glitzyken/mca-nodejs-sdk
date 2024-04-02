@@ -317,6 +317,21 @@ class MyCoverAi {
     }
   }
 
+  static async getFlexiCareHospitals() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getFlexiCareHospitals,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
   private static handleSuccessResponse(
     message: string,
     statusCode: number,

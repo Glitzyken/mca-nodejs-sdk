@@ -43,4 +43,5 @@ export const auxiliaryEndpoints = {
   getOwnerTitles: '/products/mcg/owner-titles',
   getVehicleBrandByProvider: '/products/get-vehicle-make',
   getVehicleModelByProvider: '/products/get-vehicle-model',
+  getFlexiCareHospitals: '/products/mcg/flexi-care-hospitals',
 };

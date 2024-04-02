@@ -267,7 +267,10 @@ class MyCoverAi {
     }
   }
 
-  static async getVehicleBrandByProvider(year: string, provider: string) {
+  static async getVehicleBrandByProvider(
+    year: string,
+    provider: 'aiico' | 'leadway',
+  ) {
     try {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getVehicleBrandByProvider,
@@ -291,7 +294,7 @@ class MyCoverAi {
   static async getVehicleModelByProvider(
     year: string,
     makeId: string,
-    provider: string,
+    provider: 'aiico' | 'leadway',
   ) {
     try {
       const { data } = await MyCoverAi.client.get(

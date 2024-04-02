@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { filter, includes, forEach, isEmpty, values, chain } from 'lodash';
+import { filter, includes, forEach, isEmpty, values } from 'lodash';
 
 import MyCoverGeniusFlexiCareForm from './products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
 import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
@@ -119,17 +119,196 @@ class MyCoverAi {
     }
   }
 
-  static async getComplementaryData(type: string) {
-    const isValidType = chain(auxiliaryEndpoints)
-      .values()
-      .includes(type)
-      .value();
-
-    if (!isValidType) throw new Error('Invalid type');
-
+  static async getColors() {
     try {
-      const { data } = await MyCoverAi.client.get(type);
-      return MyCoverAi.handleSuccessResponse('Data fetched', 200, data.data);
+      const { data } = await MyCoverAi.client.get(auxiliaryEndpoints.getColors);
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getGenders() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getGenders,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getVehicleTypes() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getVehicleTypes,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getManufactureYears() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getManufactureYears,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getCountries() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getCountries,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getCountriesWithStates() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getCountriesWithStates,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getStatesWithLocalGovernmentAreas() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getStatesWithLocalGovernmentAreas,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getLocalGovernmentAreasNigeria() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getLocalGovernmentAreasNigeria,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getIdentificationTypes() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getIdentificationTypes,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getOwnerTitles() {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getOwnerTitles,
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getVehicleBrandByProvider(year: string, provider: string) {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getVehicleBrandByProvider,
+        {
+          params: {
+            year,
+            provider,
+          },
+        },
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async getVehicleModelByProvider(
+    year: string,
+    makeId: string,
+    provider: string,
+  ) {
+    try {
+      const { data } = await MyCoverAi.client.get(
+        auxiliaryEndpoints.getVehicleModelByProvider,
+        {
+          params: {
+            year,
+            make_id: makeId,
+            provider,
+          },
+        },
+      );
+      return MyCoverAi.handleSuccessResponse(
+        'Fetched successfully',
+        200,
+        data.data,
+      );
     } catch (error) {
       return MyCoverAi.handleFailResponse(error);
     }

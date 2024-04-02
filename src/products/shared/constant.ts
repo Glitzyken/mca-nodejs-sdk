@@ -33,6 +33,14 @@ export const productsEndpoints = {
 export const auxiliaryEndpoints = {
   getColors: '/color-list',
   getGenders: '/genders',
-  getVehicleType: '/vehicle-body-types',
-  getManufactureYear: '/manufacture-year',
+  getVehicleTypes: '/vehicle-body-types',
+  getManufactureYears: '/manufacture-year',
+  getCountries: '/countries',
+  getCountriesWithStates: '/countries-with-states',
+  getStatesWithLocalGovernmentAreas: '/states-with-lga',
+  getLocalGovernmentAreasNigeria: '/lgas',
+  getIdentificationTypes: '/identification-types',
+  getOwnerTitles: '/products/mcg/owner-titles',
+  getVehicleBrandByProvider: '/products/get-vehicle-make',
+  getVehicleModelByProvider: '/products/get-vehicle-model',
 };

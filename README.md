@@ -13,12 +13,6 @@ npm install
 then...
 
 ```bash
-npm run build
-```
-
-then...
-
-```bash
 npm link
 ```
 

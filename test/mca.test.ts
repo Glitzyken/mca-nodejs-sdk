@@ -1,6 +1,6 @@
 import MyCoverAi from '../src';
 
-const API_KEY = 'MCASECK_TEST|d20f5a60-dee0-4a55-846d-29fe833786e8';
+const API_KEY = 'MCASECK_TEST|38eb6089-90f3-430b-8033-76117307e42a';
 
 beforeAll(() => {
   MyCoverAi.setApiKey(API_KEY);

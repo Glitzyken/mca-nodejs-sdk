@@ -12,8 +12,8 @@
     "test": "jest",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "build": "tsup",
-    "dev": "ts-node example",
+    "dev": "rm -rf dist && tsup --watch",
+    "build": "rm -rf dist && tsup",
     "pub:local": "npm run build && npm pack --pack-destination ~/Desktop",
     "prepare": "husky install"
   },
@@ -40,7 +40,6 @@
     "jest": "^29.7.0",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.1",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   }

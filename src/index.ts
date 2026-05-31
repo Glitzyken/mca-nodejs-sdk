@@ -18,7 +18,7 @@ import activeProducts from './products';
 class MyCoverAi {
   constructor() {}
   // props
-  private static baseURL = 'https://api.mycover.ai/v1';
+  private static baseURL = 'https://v2.api.mycover.ai/v2';
   private static apiKey: string;
   private static selectedProductsIds: { [key: string]: string };
   private static selectedCategory: string;
@@ -109,9 +109,10 @@ class MyCoverAi {
       }
 
       const allProductsIds = values(MyCoverAi.productsIds);
-      products = filter(products, (obj) =>
-        includes(values(allProductsIds), obj.id),
-      );
+      console.log('✅', allProductsIds);
+      // products = filter(products, (obj) =>
+      //   includes(values(allProductsIds), obj.id),
+      // );
 
       return MyCoverAi.handleSuccessResponse('All products', 200, products);
     } catch (error: any) {

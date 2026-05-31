@@ -27,8 +27,8 @@ export const purchaseEndpoints: { [key: string]: string } = {
 };
 
 export const productsEndpoints = {
-  getAllProducts: '/products/get-all-products',
-};
+  getAllProducts: '/products/all',
+} as const;
 
 export const auxiliaryEndpoints = {
   getColors: '/color-list',

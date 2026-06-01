@@ -3,11 +3,15 @@ import WellaHealthMalariaCoverForm from '../wellaHealthMalariaCover/wellaHealthM
 
 export type Form = MyCoverGeniusFlexiCareForm | WellaHealthMalariaCoverForm;
 
-export type MCAResponse = {
+export type McaResponse = {
+  responseCode: number;
+  statusCode: number;
+  message: string;
+  data?: any;
+};
+
+export type ApiResponse = {
   responseCode: number;
   responseText: string;
-  statusCode: number;
-  statusText?: string;
-  message?: string;
   data?: any;
 };

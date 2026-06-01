@@ -1,8 +1,8 @@
 import MyCoverGeniusFlexiCareForm from './products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
 import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
 
-import { Form } from './products/shared/types';
-import { MCAResponse } from './products/shared/types';
+import { ApiResponse, Form } from './products/shared/types';
+import { McaResponse } from './products/shared/types';
 import {
   purchaseEndpoints,
   productsEndpoints,
@@ -12,7 +12,7 @@ import {
 } from './products/shared/constant';
 import activeProducts from './products';
 import { isValidUUID } from './utils/validators';
-import { FetchClient } from './utils/client';
+import { FetchClient, FetchError } from './utils/client';
 
 class MyCoverAi {
   constructor() {}
@@ -85,23 +85,6 @@ class MyCoverAi {
     return this;
   }
 
-  static async purchase(productId: string, form: Form) {
-    const endpoint = purchaseEndpoints[productId];
-
-    if (!endpoint) throw new Error('Invalid ID');
-
-    try {
-      const { data } = await MyCoverAi.client.post(endpoint, form);
-      return MyCoverAi.handleSuccessResponse(
-        'Policy purchased',
-        201,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
   static async getProducts(page = 1, limit = 10) {
     const params = {
       page,
@@ -110,7 +93,10 @@ class MyCoverAi {
       category_id: MyCoverAi.selectedCategories,
     };
 
-    let response: any;
+    let response: ApiResponse = {
+      responseCode: 0,
+      responseText: '',
+    };
 
     try {
       response = await MyCoverAi.client.get(productsEndpoints.getAllProducts, {
@@ -120,7 +106,7 @@ class MyCoverAi {
       return MyCoverAi.handleFailResponse(error);
     }
 
-    const products = response.data?.data?.products;
+    const products = response.data?.products;
 
     return MyCoverAi.handleSuccessResponse(
       'Products fetched successfully',
@@ -355,27 +341,42 @@ class MyCoverAi {
     }
   }
 
+  static async purchase(productId: string, form: Form) {
+    const endpoint = purchaseEndpoints[productId];
+
+    if (!endpoint) throw new Error('Invalid ID');
+
+    try {
+      const { data } = await MyCoverAi.client.post(endpoint, form);
+      return MyCoverAi.handleSuccessResponse(
+        'Policy purchased',
+        201,
+        data.data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
   private static handleSuccessResponse(
     message: string,
     statusCode: number,
     data: any,
-  ): MCAResponse {
+  ): McaResponse {
     return {
       responseCode: 1,
-      responseText: message,
       statusCode,
+      message,
       data,
     };
   }
 
-  private static handleFailResponse(error: any): MCAResponse {
-    if (error && (error.response || error.isFetchError)) {
+  private static handleFailResponse(error: any): McaResponse {
+    if (error instanceof FetchError) {
       return {
         responseCode: 0,
-        responseText: error?.response?.data?.responseText,
         statusCode: error?.response?.status as number,
-        statusText: error?.response?.statusText,
-        message: error?.response?.data?.responseText,
+        message: error?.message,
       };
     }
 

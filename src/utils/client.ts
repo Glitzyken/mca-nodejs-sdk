@@ -1,4 +1,6 @@
-class FetchError extends Error {
+import { ApiResponse } from '../products/shared/types';
+
+export class FetchError extends Error {
   response?: {
     data: any;
     status: number;
@@ -50,7 +52,7 @@ export class FetchClient {
       );
     }
 
-    return { data };
+    return data as ApiResponse;
   }
 
   async get(url: string, config?: { params?: Record<string, any> }) {

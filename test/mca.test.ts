@@ -35,13 +35,13 @@ describe('Input Validation Errors', () => {
 
   it('should throw an error if product IDs are not passed', () => {
     expect(() => MyCoverAi.setProducts(undefined as any)).toThrow(
-      'Product IDs are required',
+      'Please provide at least one product ID',
     );
   });
 
   it('should throw an error if category is not passed', () => {
     expect(() => MyCoverAi.setCategory(undefined as any)).toThrow(
-      'Category is required',
+      'Please provide a category',
     );
   });
 });

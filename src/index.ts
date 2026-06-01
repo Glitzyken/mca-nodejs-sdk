@@ -4,14 +4,14 @@ import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/well
 import { Form } from './products/shared/types';
 import { MCAResponse } from './products/shared/types';
 import {
-  activeProductsIds,
-  productsCategories,
   purchaseEndpoints,
   productsEndpoints,
   auxiliaryEndpoints,
+  PRODUCT_CATEGORIES,
+  PRODUCTS_RECOMMENDED,
 } from './products/shared/constant';
 import activeProducts from './products';
-import { isEmpty } from './utils/lodash-es';
+import { isValidUUID } from './utils/validators';
 import { FetchClient } from './utils/client';
 
 class MyCoverAi {
@@ -20,17 +20,14 @@ class MyCoverAi {
   // props
   private static baseURL = 'https://v2.api.mycover.ai/v2';
   private static apiKey: string;
-  private static selectedProductsIds: { [key: string]: string };
-  private static selectedCategory: string;
+  private static selectedProducts: string[] = [];
+  private static selectedCategories: string[] = [];
   private static client = new FetchClient({
     baseURL: MyCoverAi.baseURL,
   });
 
   static products = activeProducts;
-  static productsIds = activeProductsIds;
-  static productsCategories = productsCategories;
 
-  // Setters
   static setApiKey(key: string) {
     if (!key) {
       MyCoverAi.throwError('API Key is required');
@@ -50,33 +47,40 @@ class MyCoverAi {
     return this;
   }
 
-  static setProducts(ids: string[]) {
-    if (!ids?.length) {
-      MyCoverAi.throwError('Product IDs are required');
+  static setProducts(productIds: string[]) {
+    if (!productIds?.length) {
+      MyCoverAi.throwError('Please provide at least one product ID');
     }
 
-    const hash: { [key: string]: string } = {};
+    const validProductIds: string[] = [];
 
-    for (const key in MyCoverAi.productsIds) {
-      const value =
-        MyCoverAi.productsIds[key as keyof typeof MyCoverAi.productsIds];
-
-      if (ids.includes(value)) {
-        hash[key] = value;
+    for (const id of productIds) {
+      if (isValidUUID(id)) {
+        validProductIds.push(id);
       }
     }
 
-    MyCoverAi.selectedProductsIds = hash;
+    MyCoverAi.selectedProducts = validProductIds;
 
     return this;
   }
 
-  static setCategory(category: string) {
-    if (!category) {
-      MyCoverAi.throwError('Category is required');
+  static setCategory(
+    categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][],
+  ) {
+    if (!categories?.length) {
+      MyCoverAi.throwError('Please provide a category');
     }
 
-    MyCoverAi.selectedCategory = category;
+    const validCategories: string[] = [];
+
+    for (const category of categories) {
+      if (Object.values(PRODUCT_CATEGORIES).includes(category)) {
+        validCategories.push(category);
+      }
+    }
+
+    MyCoverAi.selectedCategories = validCategories;
 
     return this;
   }
@@ -98,41 +102,31 @@ class MyCoverAi {
     }
   }
 
-  static async getProducts() {
+  static async getProducts(page = 1, limit = 10) {
+    const params = {
+      page,
+      limit,
+      product_id: MyCoverAi.selectedProducts,
+      category_id: MyCoverAi.selectedCategories,
+    };
+
+    let response: any;
+
     try {
-      const response = await MyCoverAi.client.get(
-        productsEndpoints.getAllProducts,
-      );
-
-      const products = response.data.data?.products;
-
-      // if product ids are provided, filter the response and return only the selected products
-      if (!isEmpty(MyCoverAi.selectedProductsIds)) {
-        // const selectedProductsIds = values(MyCoverAi.selectedProductsIds);
-        // products = filter(products, (obj) =>
-        //   includes(values(selectedProductsIds), obj.id),
-        // );
-        // return MyCoverAi.handleSuccessResponse('All products', 200, products);
-      }
-
-      // if categories are provided, filter the response and return only products under the given category
-      if (MyCoverAi.selectedCategory) {
-        // products = products.filter(
-        //   (obj) => obj.productCategory.name === MyCoverAi.selectedCategory,
-        // );
-        // return MyCoverAi.handleSuccessResponse('All products', 200, products);
-      }
-
-      const allProductsIds = Object.values(MyCoverAi.productsIds);
-      console.log('✅', allProductsIds);
-      // products = filter(products, (obj) =>
-      //   includes(values(allProductsIds), obj.id),
-      // );
-
-      return MyCoverAi.handleSuccessResponse('All products', 200, products);
+      response = await MyCoverAi.client.get(productsEndpoints.getAllProducts, {
+        params,
+      });
     } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
+
+    const products = response.data?.data?.products;
+
+    return MyCoverAi.handleSuccessResponse(
+      'Products fetched successfully',
+      200,
+      products,
+    );
   }
 
   static async getColors() {
@@ -393,5 +387,10 @@ class MyCoverAi {
   }
 }
 
-export { MyCoverGeniusFlexiCareForm, WellaHealthMalariaCoverForm };
+export {
+  PRODUCTS_RECOMMENDED,
+  PRODUCT_CATEGORIES,
+  MyCoverGeniusFlexiCareForm,
+  WellaHealthMalariaCoverForm,
+};
 export default MyCoverAi;

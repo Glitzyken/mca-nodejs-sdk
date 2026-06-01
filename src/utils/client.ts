@@ -61,7 +61,15 @@ export class FetchClient {
 
       for (const [key, value] of Object.entries(config.params)) {
         if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              if (item !== undefined && item !== null) {
+                searchParams.append(key, String(item));
+              }
+            });
+          } else {
+            searchParams.append(key, String(value));
+          }
         }
       }
 

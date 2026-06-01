@@ -1,8 +1,8 @@
-import { activeProductsIds } from '../shared/constant';
+import { PRODUCTS_RECOMMENDED } from '../shared/constant';
 import WellaHealthMalariaCoverForm from './wellaHealthMalariaCover.form.interface';
 
 const wellaHealthMalariaCover = {
-  id: activeProductsIds.WellaHealthMalariaCover,
+  id: PRODUCTS_RECOMMENDED.HEALTH.FlexiCareMiniRetail,
   name: 'Wella Health Malaria Cover',
   form: <WellaHealthMalariaCoverForm>{},
 };

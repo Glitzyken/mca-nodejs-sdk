@@ -1,6 +1,3 @@
-import axios from 'axios';
-import { filter, includes, forEach, isEmpty, values } from 'lodash';
-
 import MyCoverGeniusFlexiCareForm from './products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
 import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
 
@@ -14,15 +11,18 @@ import {
   auxiliaryEndpoints,
 } from './products/shared/constant';
 import activeProducts from './products';
+import { isEmpty } from './utils/lodash-es';
+import { FetchClient } from './utils/client';
 
 class MyCoverAi {
   constructor() {}
+
   // props
   private static baseURL = 'https://v2.api.mycover.ai/v2';
   private static apiKey: string;
   private static selectedProductsIds: { [key: string]: string };
   private static selectedCategory: string;
-  private static client = axios.create({
+  private static client = new FetchClient({
     baseURL: MyCoverAi.baseURL,
   });
 
@@ -32,34 +32,52 @@ class MyCoverAi {
 
   // Setters
   static setApiKey(key: string) {
+    if (!key) {
+      MyCoverAi.throwError('API Key is required');
+    }
+
     MyCoverAi.apiKey = key;
-    MyCoverAi.client = axios.create({
+
+    const headers: Record<string, string> = {};
+
+    headers['Authorization'] = `Bearer ${MyCoverAi.apiKey}`;
+
+    MyCoverAi.client = new FetchClient({
       baseURL: MyCoverAi.baseURL,
-      headers: {
-        common: {
-          Authorization: MyCoverAi.apiKey ? `Bearer ${MyCoverAi.apiKey}` : null,
-        },
-      },
+      headers,
     });
 
     return this;
   }
 
   static setProducts(ids: string[]) {
+    if (!ids?.length) {
+      MyCoverAi.throwError('Product IDs are required');
+    }
+
     const hash: { [key: string]: string } = {};
 
-    forEach(MyCoverAi.productsIds, function (value, key) {
+    for (const key in MyCoverAi.productsIds) {
+      const value =
+        MyCoverAi.productsIds[key as keyof typeof MyCoverAi.productsIds];
+
       if (ids.includes(value)) {
         hash[key] = value;
       }
-    });
+    }
 
     MyCoverAi.selectedProductsIds = hash;
+
     return this;
   }
 
   static setCategory(category: string) {
+    if (!category) {
+      MyCoverAi.throwError('Category is required');
+    }
+
     MyCoverAi.selectedCategory = category;
+
     return this;
   }
 
@@ -86,29 +104,26 @@ class MyCoverAi {
         productsEndpoints.getAllProducts,
       );
 
-      let products = response.data.data?.products;
+      const products = response.data.data?.products;
 
       // if product ids are provided, filter the response and return only the selected products
       if (!isEmpty(MyCoverAi.selectedProductsIds)) {
-        const selectedProductsIds = values(MyCoverAi.selectedProductsIds);
-        products = filter(products, (obj) =>
-          includes(values(selectedProductsIds), obj.id),
-        );
-
-        return MyCoverAi.handleSuccessResponse('All products', 200, products);
+        // const selectedProductsIds = values(MyCoverAi.selectedProductsIds);
+        // products = filter(products, (obj) =>
+        //   includes(values(selectedProductsIds), obj.id),
+        // );
+        // return MyCoverAi.handleSuccessResponse('All products', 200, products);
       }
 
       // if categories are provided, filter the response and return only products under the given category
       if (MyCoverAi.selectedCategory) {
-        products = filter(
-          products,
-          (obj) => obj.productCategory.name === MyCoverAi.selectedCategory,
-        );
-
-        return MyCoverAi.handleSuccessResponse('All products', 200, products);
+        // products = products.filter(
+        //   (obj) => obj.productCategory.name === MyCoverAi.selectedCategory,
+        // );
+        // return MyCoverAi.handleSuccessResponse('All products', 200, products);
       }
 
-      const allProductsIds = values(MyCoverAi.productsIds);
+      const allProductsIds = Object.values(MyCoverAi.productsIds);
       console.log('✅', allProductsIds);
       // products = filter(products, (obj) =>
       //   includes(values(allProductsIds), obj.id),
@@ -123,6 +138,7 @@ class MyCoverAi {
   static async getColors() {
     try {
       const { data } = await MyCoverAi.client.get(auxiliaryEndpoints.getColors);
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -138,6 +154,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getGenders,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -153,6 +170,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getVehicleTypes,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -168,6 +186,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getManufactureYears,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -183,6 +202,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getCountries,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -198,6 +218,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getCountriesWithStates,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -213,6 +234,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getStatesWithLocalGovernmentAreas,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -228,6 +250,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getLocalGovernmentAreasNigeria,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -243,6 +266,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getIdentificationTypes,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -258,6 +282,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getOwnerTitles,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -282,6 +307,7 @@ class MyCoverAi {
           },
         },
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -308,6 +334,7 @@ class MyCoverAi {
           },
         },
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -323,6 +350,7 @@ class MyCoverAi {
       const { data } = await MyCoverAi.client.get(
         auxiliaryEndpoints.getFlexiCareHospitals,
       );
+
       return MyCoverAi.handleSuccessResponse(
         'Fetched successfully',
         200,
@@ -347,7 +375,7 @@ class MyCoverAi {
   }
 
   private static handleFailResponse(error: any): MCAResponse {
-    if (axios.isAxiosError(error)) {
+    if (error && (error.response || error.isFetchError)) {
       return {
         responseCode: 0,
         responseText: error?.response?.data?.responseText,
@@ -358,6 +386,10 @@ class MyCoverAi {
     }
 
     return error;
+  }
+
+  private static throwError(message: string): never {
+    throw new Error(message);
   }
 }
 

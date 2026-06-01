@@ -1,7 +1,7 @@
 import MyCoverGeniusFlexiCareForm from './products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
 import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
 
-import { ApiResponse, Form } from './products/shared/types';
+import { Form } from './products/shared/types';
 import { McaResponse } from './products/shared/types';
 import {
   purchaseEndpoints,
@@ -93,25 +93,61 @@ class MyCoverAi {
       category_id: MyCoverAi.selectedCategories,
     };
 
-    let response: ApiResponse = {
-      responseCode: 0,
-      responseText: '',
-    };
+    let products: any[] = [];
 
     try {
-      response = await MyCoverAi.client.get(productsEndpoints.getAllProducts, {
-        params,
-      });
+      const { data } = await MyCoverAi.client.get(
+        productsEndpoints.getAllProducts,
+        {
+          params,
+        },
+      );
+
+      products = data?.products;
     } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
-
-    const products = response.data?.products;
 
     return MyCoverAi.handleSuccessResponse(
       'Products fetched successfully',
       200,
       products,
+    );
+  }
+
+  static async getOneProduct(productId: string) {
+    if (!isValidUUID(productId)) {
+      MyCoverAi.throwError('Invalid product ID');
+    }
+
+    let product: any = {};
+
+    try {
+      const { data } = await MyCoverAi.client.get(
+        productsEndpoints.getOneProduct.replace(':id', productId),
+      );
+
+      // remove extra fields
+      if (data) {
+        delete data.sharing_formula;
+        delete data.set_by;
+        delete data.utilities;
+        delete data.payment_providers;
+        delete data.utility_batches;
+        delete data.dependency;
+        delete data.meta;
+        delete data.document_url;
+      }
+
+      product = data;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Product fetched successfully',
+      200,
+      product,
     );
   }
 

@@ -28,6 +28,7 @@ export const purchaseEndpoints: { [key: string]: string } = {
 
 export const productsEndpoints = {
   getAllProducts: '/products/all',
+  getOneProduct: '/products/:id',
 } as const;
 
 export const auxiliaryEndpoints = {

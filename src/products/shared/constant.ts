@@ -18,31 +18,16 @@ export const PRODUCT_CATEGORIES = {
   Travel: 'f3933c0d-ef7c-4287-90bd-744cf00c8426',
 } as const;
 
-// ENDPOINTS URLS
-export const purchaseEndpoints: { [key: string]: string } = {
-  /** MyCoverGenius FlexiCare */
-  'e6b4bca1-b870-4648-8704-11c1802a51d0': '/products/mcg/buy-health',
-  /**  Wella Health Malaria Cover */
-  'fab6bda1-b870-4648-8704-11c1802a51d0': '/products/wella/buy-health-malaria',
-};
-
-export const productsEndpoints = {
+export const ENDPOINTS = {
+  // products
   getAllProducts: '/products/all',
   getOneProduct: '/products/:id',
-} as const;
 
-export const auxiliaryEndpoints = {
-  getColors: '/color-list',
-  getGenders: '/genders',
-  getVehicleTypes: '/vehicle-body-types',
-  getManufactureYears: '/manufacture-year',
-  getCountries: '/countries',
-  getCountriesWithStates: '/countries-with-states',
-  getStatesWithLocalGovernmentAreas: '/states-with-lga',
-  getLocalGovernmentAreasNigeria: '/lgas',
-  getIdentificationTypes: '/identification-types',
-  getOwnerTitles: '/products/mcg/owner-titles',
-  getVehicleBrandByProvider: '/products/get-vehicle-make',
-  getVehicleModelByProvider: '/products/get-vehicle-model',
-  getFlexiCareHospitals: '/products/mcg/flexi-care-hospitals',
-};
+  // purchase and renewal
+  getPremium: '/products/compute-price',
+  purchaseProduct: '/products/buy',
+  renewProduct: '/products/renew/:id',
+
+  // utilities
+  getUtility: '/products/utility/:id',
+} as const;

@@ -1,12 +1,6 @@
-import MyCoverGeniusFlexiCareForm from './products/myCoverGeniusFlexiCare/myCoverGeniusFlexiCare.form.interface';
-import WellaHealthMalariaCoverForm from './products/wellaHealthMalariaCover/wellaHealthMalariaCover.form.interface';
-
-import { Form } from './products/shared/types';
 import { McaResponse } from './products/shared/types';
 import {
-  purchaseEndpoints,
-  productsEndpoints,
-  auxiliaryEndpoints,
+  ENDPOINTS,
   PRODUCT_CATEGORIES,
   PRODUCTS_RECOMMENDED,
 } from './products/shared/constant';
@@ -96,12 +90,9 @@ class MyCoverAi {
     let products: any[] = [];
 
     try {
-      const { data } = await MyCoverAi.client.get(
-        productsEndpoints.getAllProducts,
-        {
-          params,
-        },
-      );
+      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllProducts, {
+        params,
+      });
 
       products = data?.products;
     } catch (error: any) {
@@ -124,7 +115,7 @@ class MyCoverAi {
 
     try {
       const { data } = await MyCoverAi.client.get(
-        productsEndpoints.getOneProduct.replace(':id', productId),
+        ENDPOINTS.getOneProduct.replace(':id', productId),
       );
 
       // remove extra fields
@@ -151,248 +142,46 @@ class MyCoverAi {
     );
   }
 
-  static async getColors() {
-    try {
-      const { data } = await MyCoverAi.client.get(auxiliaryEndpoints.getColors);
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
+  static async getOneUtility(utilityId: string) {
+    if (!isValidUUID(utilityId)) {
+      MyCoverAi.throwError('Invalid utility ID');
     }
-  }
 
-  static async getGenders() {
+    let utility: any = {};
+
     try {
       const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getGenders,
+        ENDPOINTS.getUtility.replace(':id', utilityId),
       );
 
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
+      utility = data;
+    } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Utility fetched successfully',
+      200,
+      utility,
+    );
   }
 
-  static async getVehicleTypes() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getVehicleTypes,
-      );
+  // static async purchase(productId: string, form: Form) {
+  //   const endpoint = purchaseEndpoints[productId];
 
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
+  //   if (!endpoint) throw new Error('Invalid ID');
 
-  static async getManufactureYears() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getManufactureYears,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getCountries() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getCountries,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getCountriesWithStates() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getCountriesWithStates,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getStatesWithLocalGovernmentAreas() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getStatesWithLocalGovernmentAreas,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getLocalGovernmentAreasNigeria() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getLocalGovernmentAreasNigeria,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getIdentificationTypes() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getIdentificationTypes,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getOwnerTitles() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getOwnerTitles,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getVehicleBrandByProvider(
-    year: string,
-    provider: 'aiico' | 'leadway',
-  ) {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getVehicleBrandByProvider,
-        {
-          params: {
-            year,
-            provider,
-          },
-        },
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getVehicleModelByProvider(
-    year: string,
-    makeId: string,
-    provider: 'aiico' | 'leadway',
-  ) {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getVehicleModelByProvider,
-        {
-          params: {
-            year,
-            make_id: makeId,
-            provider,
-          },
-        },
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async getFlexiCareHospitals() {
-    try {
-      const { data } = await MyCoverAi.client.get(
-        auxiliaryEndpoints.getFlexiCareHospitals,
-      );
-
-      return MyCoverAi.handleSuccessResponse(
-        'Fetched successfully',
-        200,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
-
-  static async purchase(productId: string, form: Form) {
-    const endpoint = purchaseEndpoints[productId];
-
-    if (!endpoint) throw new Error('Invalid ID');
-
-    try {
-      const { data } = await MyCoverAi.client.post(endpoint, form);
-      return MyCoverAi.handleSuccessResponse(
-        'Policy purchased',
-        201,
-        data.data,
-      );
-    } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
-    }
-  }
+  //   try {
+  //     const { data } = await MyCoverAi.client.post(endpoint, form);
+  //     return MyCoverAi.handleSuccessResponse(
+  //       'Policy purchased',
+  //       201,
+  //       data.data,
+  //     );
+  //   } catch (error) {
+  //     return MyCoverAi.handleFailResponse(error);
+  //   }
+  // }
 
   private static handleSuccessResponse(
     message: string,
@@ -424,10 +213,5 @@ class MyCoverAi {
   }
 }
 
-export {
-  PRODUCTS_RECOMMENDED,
-  PRODUCT_CATEGORIES,
-  MyCoverGeniusFlexiCareForm,
-  WellaHealthMalariaCoverForm,
-};
+export { PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
 export default MyCoverAi;

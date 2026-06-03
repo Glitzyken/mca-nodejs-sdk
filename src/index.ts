@@ -1,12 +1,11 @@
-import { McaResponse } from './products/shared/types';
 import {
   ENDPOINTS,
   PRODUCT_CATEGORIES,
   PRODUCTS_RECOMMENDED,
-} from './products/shared/constant';
-import activeProducts from './products';
+} from './shared/constant';
 import { isValidUUID } from './utils/validators';
 import { FetchClient, FetchError } from './utils/client';
+import { IRequiredBuyForm, IMcaResponse } from './shared/interface';
 
 class MyCoverAi {
   constructor() {}
@@ -19,8 +18,6 @@ class MyCoverAi {
   private static client = new FetchClient({
     baseURL: MyCoverAi.baseURL,
   });
-
-  static products = activeProducts;
 
   static setApiKey(key: string) {
     if (!key) {
@@ -79,7 +76,7 @@ class MyCoverAi {
     return this;
   }
 
-  static async getProducts(page = 1, limit = 10) {
+  static async fetchProducts(page = 1, limit = 10) {
     const params = {
       page,
       limit,
@@ -101,15 +98,12 @@ class MyCoverAi {
 
     return MyCoverAi.handleSuccessResponse(
       'Products fetched successfully',
-      200,
       products,
     );
   }
 
-  static async getOneProduct(productId: string) {
-    if (!isValidUUID(productId)) {
-      MyCoverAi.throwError('Invalid product ID');
-    }
+  static async fetchProduct(productId: string) {
+    MyCoverAi.validateProductId(productId);
 
     let product: any = {};
 
@@ -120,14 +114,14 @@ class MyCoverAi {
 
       // remove extra fields
       if (data) {
-        delete data.sharing_formula;
-        delete data.set_by;
-        delete data.utilities;
-        delete data.payment_providers;
-        delete data.utility_batches;
-        delete data.dependency;
-        delete data.meta;
-        delete data.document_url;
+        'sharing_formula' in data && delete data.sharing_formula;
+        'set_by' in data && delete data.set_by;
+        'utilities' in data && delete data.utilities;
+        'payment_providers' in data && delete data.payment_providers;
+        'utility_batches' in data && delete data.utility_batches;
+        'dependency' in data && delete data.dependency;
+        'meta' in data && delete data.meta;
+        'document_url' in data && delete data.document_url;
       }
 
       product = data;
@@ -137,12 +131,11 @@ class MyCoverAi {
 
     return MyCoverAi.handleSuccessResponse(
       'Product fetched successfully',
-      200,
       product,
     );
   }
 
-  static async getOneUtility(utilityId: string) {
+  static async fetchUtility(utilityId: string) {
     if (!isValidUUID(utilityId)) {
       MyCoverAi.throwError('Invalid utility ID');
     }
@@ -161,46 +154,71 @@ class MyCoverAi {
 
     return MyCoverAi.handleSuccessResponse(
       'Utility fetched successfully',
-      200,
       utility,
     );
   }
 
-  // static async purchase(productId: string, form: Form) {
-  //   const endpoint = purchaseEndpoints[productId];
+  static async calculatePremium<T>(productId: string, form: T) {
+    MyCoverAi.validateProductId(productId);
 
-  //   if (!endpoint) throw new Error('Invalid ID');
+    const payload = {
+      product_id: productId,
+      body: { ...form },
+    };
 
-  //   try {
-  //     const { data } = await MyCoverAi.client.post(endpoint, form);
-  //     return MyCoverAi.handleSuccessResponse(
-  //       'Policy purchased',
-  //       201,
-  //       data.data,
-  //     );
-  //   } catch (error) {
-  //     return MyCoverAi.handleFailResponse(error);
-  //   }
-  // }
+    try {
+      const { data } = await MyCoverAi.client.post(
+        ENDPOINTS.getPremium,
+        payload,
+      );
+
+      return MyCoverAi.handleSuccessResponse(
+        'Premium calculated successfully',
+        data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async buy(productId: string, form: IRequiredBuyForm) {
+    MyCoverAi.validateProductId(productId);
+
+    const payload = {
+      ...form,
+      product_id: productId,
+    };
+
+    try {
+      const { data } = await MyCoverAi.client.post(
+        ENDPOINTS.buyProduct,
+        payload,
+      );
+
+      return MyCoverAi.handleSuccessResponse(
+        'Policy purchased successfully',
+        data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
 
   private static handleSuccessResponse(
     message: string,
-    statusCode: number,
     data: any,
-  ): McaResponse {
+  ): IMcaResponse {
     return {
-      responseCode: 1,
-      statusCode,
+      code: 1,
       message,
       data,
     };
   }
 
-  private static handleFailResponse(error: any): McaResponse {
+  private static handleFailResponse(error: any): IMcaResponse {
     if (error instanceof FetchError) {
       return {
-        responseCode: 0,
-        statusCode: error?.response?.status as number,
+        code: 0,
         message: error?.message,
       };
     }
@@ -211,7 +229,13 @@ class MyCoverAi {
   private static throwError(message: string): never {
     throw new Error(message);
   }
+
+  private static validateProductId(productId: string) {
+    if (!isValidUUID(productId)) {
+      MyCoverAi.throwError('Invalid product ID');
+    }
+  }
 }
 
-export { PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
+export { IRequiredBuyForm, PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
 export default MyCoverAi;

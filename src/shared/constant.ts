@@ -25,7 +25,7 @@ export const ENDPOINTS = {
 
   // purchase and renewal
   getPremium: '/products/compute-price',
-  purchaseProduct: '/products/buy',
+  buyProduct: '/products/buy',
   renewProduct: '/products/renew/:id',
 
   // utilities

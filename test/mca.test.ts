@@ -6,21 +6,9 @@ beforeAll(() => {
   MyCoverAi.setApiKey(API_KEY);
 });
 
-describe('Properties', () => {
-  it('products', () => {
-    const { products } = MyCoverAi;
-
-    expect(products).toBeDefined();
-    expect(MyCoverAi.products).toHaveProperty('myCoverGeniusFlexiCare');
-    expect(MyCoverAi.products).toHaveProperty('myCoverGeniusFlexiCare.id');
-    expect(MyCoverAi.products).toHaveProperty('myCoverGeniusFlexiCare.name');
-    expect(MyCoverAi.products).toHaveProperty('myCoverGeniusFlexiCare.form');
-  });
-});
-
 describe('/Get all products', () => {
   it('Should return all products', async () => {
-    const res = await MyCoverAi.getProducts();
+    const res = await MyCoverAi.fetchProducts();
     expect(res.data).toBeTruthy();
     expect(res.data).toBeInstanceOf(Array);
   });

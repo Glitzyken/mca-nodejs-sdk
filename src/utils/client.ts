@@ -1,4 +1,4 @@
-import { ApiResponse } from '../products/shared/types';
+import { IApiResponse } from '../shared/interface';
 
 export class FetchError extends Error {
   response?: {
@@ -52,7 +52,7 @@ export class FetchClient {
       );
     }
 
-    return data as ApiResponse;
+    return data as IApiResponse;
   }
 
   async get(url: string, config?: { params?: Record<string, any> }) {

@@ -4,7 +4,10 @@ export const PRODUCTS_RECOMMENDED = {
     FlexiCareMiniRetail: 'f7b4bca1-b870-4648-8704-11c1802a51d0',
   },
   GADGET: {},
-};
+  LIFE: {
+    FlexiMoveBasic: '1979d44d-a487-4b9a-a94a-ca14221eabe1',
+  },
+} as const;
 
 export const PRODUCT_CATEGORIES = {
   Package: '14fb5968-48d2-49ac-88a8-0ee40e01fcca',

@@ -2,6 +2,7 @@ export interface IMcaResponse {
   code: number;
   message: string;
   data?: any;
+  meta?: Record<string, any>;
 }
 
 export interface IApiResponse {
@@ -10,7 +11,7 @@ export interface IApiResponse {
   data?: any;
 }
 
-export interface IRequiredBuyForm {
+export interface IBuyForm {
   /** Customer's legal first name */
   first_name: string;
   /** Customer's legal last name */
@@ -25,7 +26,12 @@ export interface IRequiredBuyForm {
   gender: 'Male' | 'Female';
   /** Customer's home address */
   address: string;
+  /** Determine if the insurance is bought for self or other */
+  bought_for_self: boolean;
 
   /** National Identity Number (NIN) of the customer */
   nin?: string;
+
+  // Allow any additional fields of any type
+  [key: string]: any;
 }

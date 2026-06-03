@@ -5,7 +5,7 @@ import {
 } from './shared/constant';
 import { isValidUUID } from './utils/validators';
 import { FetchClient, FetchError } from './utils/client';
-import { IRequiredBuyForm, IMcaResponse } from './shared/interface';
+import { IBuyForm, IMcaResponse } from './shared/interface';
 
 class MyCoverAi {
   constructor() {}
@@ -13,7 +13,7 @@ class MyCoverAi {
   // props
   private static baseURL = 'https://v2.api.mycover.ai/v2';
   private static apiKey: string;
-  private static selectedProducts: string[] = [];
+  private static myProducts: string[] = [];
   private static selectedCategories: string[] = [];
   private static client = new FetchClient({
     baseURL: MyCoverAi.baseURL,
@@ -51,7 +51,7 @@ class MyCoverAi {
       }
     }
 
-    MyCoverAi.selectedProducts = validProductIds;
+    MyCoverAi.myProducts = validProductIds;
 
     return this;
   }
@@ -80,11 +80,12 @@ class MyCoverAi {
     const params = {
       page,
       limit,
-      product_id: MyCoverAi.selectedProducts,
+      product_id: MyCoverAi.myProducts,
       category_id: MyCoverAi.selectedCategories,
     };
 
     let products: any[] = [];
+    let totalCount = 0;
 
     try {
       const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllProducts, {
@@ -92,6 +93,7 @@ class MyCoverAi {
       });
 
       products = data?.products;
+      totalCount = data?.total_count || 0;
     } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
@@ -99,6 +101,11 @@ class MyCoverAi {
     return MyCoverAi.handleSuccessResponse(
       'Products fetched successfully',
       products,
+      {
+        page,
+        limit,
+        totalCount,
+      },
     );
   }
 
@@ -181,7 +188,7 @@ class MyCoverAi {
     }
   }
 
-  static async buy<T extends IRequiredBuyForm>(productId: string, form: T) {
+  static async buy<T extends IBuyForm>(productId: string, form: T) {
     MyCoverAi.validateProductId(productId);
 
     const payload = {
@@ -207,11 +214,13 @@ class MyCoverAi {
   private static handleSuccessResponse(
     message: string,
     data: any,
+    meta?: Record<string, any>,
   ): IMcaResponse {
     return {
       code: 1,
       message,
       data,
+      ...(meta && { meta }),
     };
   }
 
@@ -237,5 +246,5 @@ class MyCoverAi {
   }
 }
 
-export { IRequiredBuyForm, PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
+export { IBuyForm, IMcaResponse, PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
 export default MyCoverAi;

@@ -158,7 +158,7 @@ class MyCoverAi {
     );
   }
 
-  static async calculatePremium<T>(productId: string, form: T) {
+  static async calculatePremium(productId: string, form: Record<string, any>) {
     MyCoverAi.validateProductId(productId);
 
     const payload = {
@@ -181,7 +181,7 @@ class MyCoverAi {
     }
   }
 
-  static async buy(productId: string, form: IRequiredBuyForm) {
+  static async buy<T extends IRequiredBuyForm>(productId: string, form: T) {
     MyCoverAi.validateProductId(productId);
 
     const payload = {

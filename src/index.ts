@@ -3,7 +3,7 @@ import {
   PRODUCT_CATEGORIES,
   PRODUCTS_RECOMMENDED,
 } from './shared/constant';
-import { isValidUUID } from './utils/validators';
+import { isValidDate, isValidUUID } from './utils/validators';
 import { FetchClient, FetchError } from './utils/client';
 import { IBuyForm, IMcaResponse } from './shared/interface';
 
@@ -76,6 +76,52 @@ class MyCoverAi {
     return this;
   }
 
+  static async calculatePremium(productId: string, form: Record<string, any>) {
+    MyCoverAi.validateProductId(productId);
+
+    const payload = {
+      product_id: productId,
+      body: { ...form },
+    };
+
+    try {
+      const { data } = await MyCoverAi.client.post(
+        ENDPOINTS.getPremium,
+        payload,
+      );
+
+      return MyCoverAi.handleSuccessResponse(
+        'Premium calculated successfully',
+        data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
+  static async buy<T extends IBuyForm>(productId: string, form: T) {
+    MyCoverAi.validateProductId(productId);
+
+    const payload = {
+      ...form,
+      product_id: productId,
+    };
+
+    try {
+      const { data } = await MyCoverAi.client.post(
+        ENDPOINTS.buyProduct,
+        payload,
+      );
+
+      return MyCoverAi.handleSuccessResponse(
+        'Policy purchased successfully',
+        data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+  }
+
   static async fetchProducts(page = 1, limit = 10) {
     const params = {
       page,
@@ -112,7 +158,7 @@ class MyCoverAi {
   static async fetchProduct(productId: string) {
     MyCoverAi.validateProductId(productId);
 
-    let product: any = {};
+    let product: Record<string, any> = {};
 
     try {
       const { data } = await MyCoverAi.client.get(
@@ -165,50 +211,98 @@ class MyCoverAi {
     );
   }
 
-  static async calculatePremium(productId: string, form: Record<string, any>) {
-    MyCoverAi.validateProductId(productId);
+  static async fetchPolicies({
+    page = 1,
+    limit = 10,
+    search,
+    isActive,
+    productId,
+    activatedAtStart,
+    activatedAtEnd,
+    expiredAtStart,
+    expiredAtEnd,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    isActive?: boolean;
+    productId?: string;
+    activatedAtStart?: string;
+    activatedAtEnd?: string;
+    expiredAtStart?: string;
+    expiredAtEnd?: string;
+  }) {
+    if (productId) MyCoverAi.validateProductId(productId);
+    if (activatedAtStart) MyCoverAi.validateDate(activatedAtStart);
+    if (activatedAtEnd) MyCoverAi.validateDate(activatedAtEnd);
+    if (expiredAtStart) MyCoverAi.validateDate(expiredAtStart);
+    if (expiredAtEnd) MyCoverAi.validateDate(expiredAtEnd);
 
-    const payload = {
+    const params = {
+      page,
+      limit,
+      search,
+      is_active: isActive,
       product_id: productId,
-      body: { ...form },
+      activated_at_start: activatedAtStart,
+      activated_at_end: activatedAtEnd,
+      expired_at_start: expiredAtStart,
+      expired_at_end: expiredAtEnd,
     };
 
-    try {
-      const { data } = await MyCoverAi.client.post(
-        ENDPOINTS.getPremium,
-        payload,
-      );
+    let policies: any[] = [];
+    let totalCount = 0;
 
-      return MyCoverAi.handleSuccessResponse(
-        'Premium calculated successfully',
-        data,
-      );
-    } catch (error) {
+    try {
+      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllPolicies, {
+        params,
+      });
+
+      policies = data?.policies;
+      totalCount = data?.total_result || 0;
+    } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Policies fetched successfully',
+      policies,
+      {
+        page,
+        limit,
+        totalCount,
+      },
+    );
   }
 
-  static async buy<T extends IBuyForm>(productId: string, form: T) {
-    MyCoverAi.validateProductId(productId);
+  static async fetchPolicy(policyId: string) {
+    if (!isValidUUID(policyId)) {
+      MyCoverAi.throwError('Invalid policy ID');
+    }
 
-    const payload = {
-      ...form,
-      product_id: productId,
-    };
+    let policy: Record<string, any> = {};
 
     try {
-      const { data } = await MyCoverAi.client.post(
-        ENDPOINTS.buyProduct,
-        payload,
+      const { data } = await MyCoverAi.client.get(
+        ENDPOINTS.getOnePolicy.replace(':id', policyId),
       );
 
-      return MyCoverAi.handleSuccessResponse(
-        'Policy purchased successfully',
-        data,
-      );
-    } catch (error) {
+      // remove extra fields
+      if (data) {
+        'mca_payload' in data && delete data.mca_payload;
+        'as_service_meta' in data && delete data.as_service_meta;
+        'history' in data && delete data.history;
+      }
+
+      policy = data;
+    } catch (error: any) {
       return MyCoverAi.handleFailResponse(error);
     }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Policy fetched successfully',
+      policy,
+    );
   }
 
   private static handleSuccessResponse(
@@ -242,6 +336,14 @@ class MyCoverAi {
   private static validateProductId(productId: string) {
     if (!isValidUUID(productId)) {
       MyCoverAi.throwError('Invalid product ID');
+    }
+  }
+
+  private static validateDate(date: string) {
+    if (!isValidDate(date)) {
+      MyCoverAi.throwError(
+        `Invalid date: ${date}. Must be in yyyy-mm-dd format`,
+      );
     }
   }
 }

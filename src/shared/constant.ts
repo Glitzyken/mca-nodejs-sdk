@@ -31,6 +31,10 @@ export const ENDPOINTS = {
   buyProduct: '/products/buy',
   renewProduct: '/products/renew/:id',
 
+  // policies
+  getAllPolicies: '/policies',
+  getOnePolicy: '/policies/:id',
+
   // utilities
   getUtility: '/products/utility/:id',
 } as const;

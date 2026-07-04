@@ -8,7 +8,7 @@ beforeAll(() => {
 
 describe('/Get all products', () => {
   it('Should return all products', async () => {
-    const res = await MyCoverAi.fetchProducts();
+    const res = await MyCoverAi.fetchProducts({ page: 1, limit: 10 });
     expect(res.data).toBeTruthy();
     expect(res.data).toBeInstanceOf(Array);
   });

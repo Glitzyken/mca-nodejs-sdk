@@ -35,6 +35,10 @@ export const ENDPOINTS = {
   getAllPolicies: '/policies',
   getOnePolicy: '/policies/:id',
 
+  // claims
+  getAllClaims: '/claims',
+  getOneClaim: '/claims/:id',
+
   // utilities
   getUtility: '/products/utility/:id',
 } as const;

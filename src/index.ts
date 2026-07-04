@@ -77,7 +77,7 @@ class MyCoverAi {
   }
 
   static async calculatePremium(productId: string, form: Record<string, any>) {
-    MyCoverAi.validateProductId(productId);
+    MyCoverAi.validateId(productId, 'product');
 
     const payload = {
       product_id: productId,
@@ -100,7 +100,7 @@ class MyCoverAi {
   }
 
   static async buy<T extends IBuyForm>(productId: string, form: T) {
-    MyCoverAi.validateProductId(productId);
+    MyCoverAi.validateId(productId, 'product');
 
     const payload = {
       ...form,
@@ -122,7 +122,13 @@ class MyCoverAi {
     }
   }
 
-  static async fetchProducts(page = 1, limit = 10) {
+  static async fetchProducts({
+    page = 1,
+    limit = 10,
+  }: {
+    page?: number;
+    limit?: number;
+  }) {
     const params = {
       page,
       limit,
@@ -156,7 +162,7 @@ class MyCoverAi {
   }
 
   static async fetchProduct(productId: string) {
-    MyCoverAi.validateProductId(productId);
+    MyCoverAi.validateId(productId, 'product');
 
     let product: Record<string, any> = {};
 
@@ -189,9 +195,7 @@ class MyCoverAi {
   }
 
   static async fetchUtility(utilityId: string) {
-    if (!isValidUUID(utilityId)) {
-      MyCoverAi.throwError('Invalid utility ID');
-    }
+    MyCoverAi.validateId(utilityId, 'utility');
 
     let utility: any = {};
 
@@ -232,7 +236,7 @@ class MyCoverAi {
     expiredAtStart?: string;
     expiredAtEnd?: string;
   }) {
-    if (productId) MyCoverAi.validateProductId(productId);
+    if (productId) MyCoverAi.validateId(productId, 'product');
     if (activatedAtStart) MyCoverAi.validateDate(activatedAtStart);
     if (activatedAtEnd) MyCoverAi.validateDate(activatedAtEnd);
     if (expiredAtStart) MyCoverAi.validateDate(expiredAtStart);
@@ -276,9 +280,7 @@ class MyCoverAi {
   }
 
   static async fetchPolicy(policyId: string) {
-    if (!isValidUUID(policyId)) {
-      MyCoverAi.throwError('Invalid policy ID');
-    }
+    MyCoverAi.validateId(policyId, 'policy');
 
     let policy: Record<string, any> = {};
 
@@ -303,6 +305,90 @@ class MyCoverAi {
       'Policy fetched successfully',
       policy,
     );
+  }
+
+  static async fetchClaims({
+    page = 1,
+    limit = 10,
+    status,
+    type,
+    customerId,
+    startDate,
+    endDate,
+    search,
+  }: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    customerId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }) {
+    if (customerId) MyCoverAi.validateId(customerId, 'customer');
+    if (startDate) MyCoverAi.validateDate(startDate);
+    if (endDate) MyCoverAi.validateDate(endDate);
+
+    const params = {
+      page,
+      limit,
+      status,
+      type,
+      customer_id: customerId,
+      start_date: startDate,
+      end_date: endDate,
+      search,
+    };
+
+    let claims: any[] = [];
+    let totalCount = 0;
+
+    try {
+      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllClaims, {
+        params,
+      });
+
+      claims = data?.claims;
+      totalCount = data?.total_result || 0;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Claims fetched successfully',
+      claims,
+      {
+        page,
+        limit,
+        totalCount,
+      },
+    );
+  }
+
+  static async fetchClaim(claimId: string) {
+    MyCoverAi.validateId(claimId, 'claim');
+
+    let claim: Record<string, any> = {};
+
+    try {
+      const { data } = await MyCoverAi.client.get(
+        ENDPOINTS.getOneClaim.replace(':id', claimId),
+      );
+
+      // remove extra fields
+      if (data) {
+        'mca_payload' in data && delete data.mca_payload;
+        'as_service_meta' in data && delete data.as_service_meta;
+        'history' in data && delete data.history;
+      }
+
+      claim = data;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse('Claim fetched successfully', claim);
   }
 
   private static handleSuccessResponse(
@@ -333,9 +419,9 @@ class MyCoverAi {
     throw new Error(message);
   }
 
-  private static validateProductId(productId: string) {
-    if (!isValidUUID(productId)) {
-      MyCoverAi.throwError('Invalid product ID');
+  private static validateId(id: string, name: string) {
+    if (!isValidUUID(id)) {
+      MyCoverAi.throwError(`Invalid ${name} id`);
     }
   }
 

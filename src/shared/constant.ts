@@ -39,6 +39,12 @@ export const ENDPOINTS = {
   getAllClaims: '/claims',
   getOneClaim: '/claims/:id',
 
+  // customers
+  getAllCustomers: '/customers',
+  getOneCustomer: '/customers/:id',
+  getCustomerPurchases: '/customers/:id/purchases',
+  getCustomerPolicies: '/customers/:id/policies',
+
   // utilities
   getUtility: '/products/utility/:id',
 } as const;

@@ -391,6 +391,170 @@ class MyCoverAi {
     return MyCoverAi.handleSuccessResponse('Claim fetched successfully', claim);
   }
 
+  static async fetchCustomers({
+    page = 1,
+    limit = 10,
+    isActive,
+    createdAtStart,
+    createdAtEnd,
+    search,
+  }: {
+    page?: number;
+    limit?: number;
+    isActive?: boolean;
+    createdAtStart?: string;
+    createdAtEnd?: string;
+    search?: string;
+  }) {
+    if (createdAtStart) MyCoverAi.validateDate(createdAtStart);
+    if (createdAtEnd) MyCoverAi.validateDate(createdAtEnd);
+
+    const params = {
+      page,
+      limit,
+      is_active: isActive,
+      created_at_start: createdAtStart,
+      created_at_end: createdAtEnd,
+      search,
+    };
+
+    let customers: any[] = [];
+    let totalCount = 0;
+
+    try {
+      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllCustomers, {
+        params,
+      });
+
+      customers = data?.customers;
+      totalCount = data?.total_result || 0;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Customers fetched successfully',
+      customers,
+      {
+        page,
+        limit,
+        totalCount,
+      },
+    );
+  }
+
+  static async fetchCustomer(customerId: string) {
+    MyCoverAi.validateId(customerId, 'customer');
+
+    let customer: Record<string, any> = {};
+
+    try {
+      const { data } = await MyCoverAi.client.get(
+        ENDPOINTS.getOneCustomer.replace(':id', customerId),
+      );
+
+      customer = data;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Customer fetched successfully',
+      customer,
+    );
+  }
+
+  static async fetchCustomerPurchases({
+    customerId,
+    page = 1,
+    limit = 10,
+    isRenewal,
+  }: {
+    customerId: string;
+    page?: number;
+    limit?: number;
+    isRenewal?: boolean;
+  }) {
+    MyCoverAi.validateId(customerId, 'customer');
+
+    const params = {
+      page,
+      limit,
+      is_renewal: isRenewal,
+    };
+
+    let purchases: any[] = [];
+    let totalCount = 0;
+
+    try {
+      const { data } = await MyCoverAi.client.get(
+        ENDPOINTS.getCustomerPurchases.replace(':id', customerId),
+        {
+          params,
+        },
+      );
+
+      purchases = data?.purchases;
+      totalCount = data?.total_result || 0;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Customer purchases fetched successfully',
+      purchases,
+      {
+        page,
+        limit,
+        totalCount,
+      },
+    );
+  }
+
+  static async fetchCustomerPolicies({
+    customerId,
+    page = 1,
+    limit = 10,
+  }: {
+    customerId: string;
+    page?: number;
+    limit?: number;
+  }) {
+    MyCoverAi.validateId(customerId, 'customer');
+
+    const params = {
+      page,
+      limit,
+    };
+
+    let policies: any[] = [];
+    let totalCount = 0;
+
+    try {
+      const { data } = await MyCoverAi.client.get(
+        ENDPOINTS.getCustomerPolicies.replace(':id', customerId),
+        {
+          params,
+        },
+      );
+
+      policies = data?.policies;
+      totalCount = data?.total_result || 0;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Customer policies fetched successfully',
+      policies,
+      {
+        page,
+        limit,
+        totalCount,
+      },
+    );
+  }
+
   private static handleSuccessResponse(
     message: string,
     data: any,
@@ -420,6 +584,10 @@ class MyCoverAi {
   }
 
   private static validateId(id: string, name: string) {
+    if (!id) {
+      MyCoverAi.throwError(`${name} id is required`);
+    }
+
     if (!isValidUUID(id)) {
       MyCoverAi.throwError(`Invalid ${name} id`);
     }

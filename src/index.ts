@@ -122,6 +122,11 @@ class MyCoverAi {
     }
   }
 
+  static async renewProduct(policyId: string) {
+    // TODO
+    return policyId;
+  }
+
   static async fetchProducts({
     page = 1,
     limit = 10,
@@ -161,7 +166,7 @@ class MyCoverAi {
     );
   }
 
-  static async fetchProduct(productId: string) {
+  static async fetchOneProduct(productId: string) {
     MyCoverAi.validateId(productId, 'product');
 
     let product: Record<string, any> = {};
@@ -194,7 +199,7 @@ class MyCoverAi {
     );
   }
 
-  static async fetchUtility(utilityId: string) {
+  static async fetchOneUtility(utilityId: string) {
     MyCoverAi.validateId(utilityId, 'utility');
 
     let utility: any = {};
@@ -279,7 +284,7 @@ class MyCoverAi {
     );
   }
 
-  static async fetchPolicy(policyId: string) {
+  static async fetchOnePolicy(policyId: string) {
     MyCoverAi.validateId(policyId, 'policy');
 
     let policy: Record<string, any> = {};
@@ -366,7 +371,7 @@ class MyCoverAi {
     );
   }
 
-  static async fetchClaim(claimId: string) {
+  static async fetchOneClaim(claimId: string) {
     MyCoverAi.validateId(claimId, 'claim');
 
     let claim: Record<string, any> = {};
@@ -443,7 +448,7 @@ class MyCoverAi {
     );
   }
 
-  static async fetchCustomer(customerId: string) {
+  static async fetchOneCustomer(customerId: string) {
     MyCoverAi.validateId(customerId, 'customer');
 
     let customer: Record<string, any> = {};
@@ -552,6 +557,85 @@ class MyCoverAi {
         limit,
         totalCount,
       },
+    );
+  }
+
+  static async fetchPurchases({
+    page = 1,
+    limit = 10,
+    search,
+    isRenewal,
+    createdAtStart,
+    createdAtEnd,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    isRenewal?: boolean;
+    createdAtStart?: string;
+    createdAtEnd?: string;
+  }) {
+    if (createdAtStart) MyCoverAi.validateDate(createdAtStart);
+    if (createdAtEnd) MyCoverAi.validateDate(createdAtEnd);
+
+    const params = {
+      page,
+      limit,
+      search,
+      is_renewal: isRenewal,
+      created_at_start: createdAtStart,
+      created_at_end: createdAtEnd,
+    };
+
+    let purchases: any[] = [];
+    let totalCount = 0;
+
+    try {
+      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllPurchases, {
+        params,
+      });
+
+      purchases = data?.purchases;
+      totalCount = data?.total_result || 0;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Purchases fetched successfully',
+      purchases,
+      {
+        page,
+        limit,
+        totalCount,
+      },
+    );
+  }
+
+  static async fetchOnePurchase(purchaseId: string) {
+    MyCoverAi.validateId(purchaseId, 'purchase');
+
+    let purchase: Record<string, any> = {};
+
+    try {
+      const { data } = await MyCoverAi.client.get(
+        ENDPOINTS.getOnePurchase.replace(':id', purchaseId),
+      );
+
+      // remove extra fields
+      if (data) {
+        'dividend' in data && delete data.dividend;
+        'renewal_history' in data && delete data.renewal_history;
+      }
+
+      purchase = data;
+    } catch (error: any) {
+      return MyCoverAi.handleFailResponse(error);
+    }
+
+    return MyCoverAi.handleSuccessResponse(
+      'Purchase fetched successfully',
+      purchase,
     );
   }
 

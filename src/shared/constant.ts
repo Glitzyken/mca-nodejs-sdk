@@ -35,6 +35,10 @@ export const ENDPOINTS = {
   getAllPolicies: '/policies',
   getOnePolicy: '/policies/:id',
 
+  // purchases
+  getAllPurchases: '/purchases',
+  getOnePurchase: '/purchases/:id',
+
   // claims
   getAllClaims: '/claims',
   getOneClaim: '/claims/:id',

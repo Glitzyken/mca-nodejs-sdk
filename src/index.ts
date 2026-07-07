@@ -122,9 +122,26 @@ class MyCoverAi {
     }
   }
 
-  static async renewProduct(policyId: string) {
-    // TODO
-    return policyId;
+  static async renew(policyId: string, payload: Record<string, any>) {
+    MyCoverAi.validateId(policyId, 'policy');
+
+    const body = {
+      ...payload,
+    };
+
+    try {
+      const { data } = await MyCoverAi.client.post(
+        ENDPOINTS.renewProduct.replace(':id', policyId),
+        body,
+      );
+
+      return MyCoverAi.handleSuccessResponse(
+        'Policy renewed successfully',
+        data,
+      );
+    } catch (error) {
+      return MyCoverAi.handleFailResponse(error);
+    }
   }
 
   static async fetchProducts({
@@ -656,7 +673,7 @@ class MyCoverAi {
     if (error instanceof FetchError) {
       return {
         code: 0,
-        message: error?.message,
+        message: `API Error: ${error?.message}`,
       };
     }
 
@@ -664,7 +681,7 @@ class MyCoverAi {
   }
 
   private static throwError(message: string): never {
-    throw new Error(message);
+    throw new Error(`SDK Error: ${message}`);
   }
 
   private static validateId(id: string, name: string) {

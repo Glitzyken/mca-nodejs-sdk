@@ -26,7 +26,7 @@ export const ENDPOINTS = {
   getAllProducts: '/products/all',
   getOneProduct: '/products/:id',
 
-  // purchase and renewal
+  // buy/renew
   getPremium: '/products/compute-price',
   buyProduct: '/products/buy',
   renewProduct: '/products/renew/:id',

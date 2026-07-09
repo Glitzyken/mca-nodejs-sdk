@@ -14,8 +14,8 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "dev": "rm -rf dist && tsup --watch",
     "build": "rm -rf dist && tsup",
-    "pub:local": "npm run build && npm pack --pack-destination ~/Desktop",
-    "prepare": "husky install"
+    "prepublishOnly": "npm run build",
+    "prepare": "husky install || true"
   },
   "keywords": [
     "mycoverai",
@@ -40,5 +40,20 @@
     "ts-jest": "^29.1.2",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
-  }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Glitzyken/mca-nodejs-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Glitzyken/mca-nodejs-sdk/issues"
+  },
+  "homepage": "https://glitzyken.github.io/mca-nodejs-sdk"
 }

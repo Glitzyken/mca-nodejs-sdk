@@ -1,6 +1,6 @@
 # MyCover.ai Node.js SDK
 
-> Seamlessly integrate Africa's foremost insure-tech infrastructure into your Node.js application.
+> Seamlessly integrate Africa's foremost insure-tech infrastructure into your Node.js/Nest.js application.
 
 [![npm version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://www.npmjs.com/package/mca-nodejs-sdk)
 [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)

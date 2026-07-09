@@ -8,6 +8,23 @@
 
 ---
 
+<!-- ============================================= -->
+<!-- 1. DISCLAIMER -->
+<!-- ============================================= -->
+
+> **⚠️ Unofficial SDK**
+>
+> This is an **unofficial**, community-maintained Node.js SDK for the [MyCover.ai](https://mycover.ai) API. It is **not officially affiliated with, endorsed by, or maintained by MyCover.ai**. It was built independently to make integrating with the MyCover.ai API easier for the Node.js community.
+>
+> "MyCover.ai" and any associated logos are trademarks of their respective owner and are used here solely to describe API compatibility. For official support, please refer to [MyCover.ai's official documentation](https://mycover.ai) or support channels.
+>
+> This SDK is provided "as is," without warranty of any kind. See the [License](#license) section for full details.
+
+
+<!-- ============================================= -->
+<!-- 2. LICENSE SECTION -->
+<!-- ============================================= -->
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -54,7 +71,7 @@
 
 ## Overview
 
-The **MyCover.ai Node.js SDK** is an unofficial, developer-friendly TypeScript library that wraps the [MyCover.ai v2 REST API](https://v2.api.mycover.ai/v2). It provides a clean, strongly-typed, static class interface for working with:
+The **MyCover.ai Node.js SDK** is an unofficial, developer-friendly TypeScript library that wraps the [MyCover.ai v2 REST API](docs.mycover.ai). It provides a clean, strongly-typed, static class interface for working with:
 
 - **Products** — Browse and filter insurance products
 - **Premiums** — Calculate insurance premiums before purchase
@@ -114,23 +131,25 @@ These three static methods configure the SDK. They support **method chaining** a
 Authenticates the SDK with your MyCover.ai API key. This must be called **first** before making any API requests.
 
 **Signature:**
+
 ```typescript
 static setApiKey(key: string): typeof MyCoverAi
 ```
 
 **Parameters:**
 
-| Parameter | Type     | Required | Description                              |
-|-----------|----------|----------|------------------------------------------|
-| `key`     | `string` | ✅ Yes    | Your MyCover.ai API key (Bearer token).  |
+| Parameter | Type     | Required | Description                                                  |
+| --------- | -------- | -------- | ------------------------------------------------------------ |
+| `key`     | `string` | ✅ Yes    | Your MyCover.ai API key [here](https://docs.mycover.ai/getting-started/authentication). |
 
 **Returns:** `typeof MyCoverAi` — The class itself, enabling method chaining.
 
 **Throws:** `Error` with message `"SDK Error: API Key is required"` if `key` is empty or falsy.
 
 **Example:**
+
 ```typescript
-MyCoverAi.setApiKey('mca_live_xxxxxxxxxxxx');
+MyCoverAi.setApiKey('MCASECK_TEST|xxxxxxxxxxxx');
 ```
 
 ---
@@ -140,14 +159,15 @@ MyCoverAi.setApiKey('mca_live_xxxxxxxxxxxx');
 Scopes subsequent `fetchProducts` calls to a specific list of product IDs. Only valid UUIDs are retained; invalid ones are silently filtered out.
 
 **Signature:**
+
 ```typescript
 static setProducts(productIds: string[]): typeof MyCoverAi
 ```
 
 **Parameters:**
 
-| Parameter    | Type       | Required | Description                                                      |
-|--------------|------------|----------|------------------------------------------------------------------|
+| Parameter    | Type       | Required | Description                                                  |
+| ------------ | ---------- | -------- | ------------------------------------------------------------ |
 | `productIds` | `string[]` | ✅ Yes    | An array of product UUIDs to filter by. Must have at least one. |
 
 **Returns:** `typeof MyCoverAi` — The class itself, enabling method chaining.
@@ -157,6 +177,7 @@ static setProducts(productIds: string[]): typeof MyCoverAi
 > **Tip:** Use the exported `PRODUCTS_RECOMMENDED` constant to avoid hardcoding UUIDs.
 
 **Example:**
+
 ```typescript
 import { PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
 
@@ -173,6 +194,7 @@ MyCoverAi.setProducts([
 Scopes subsequent `fetchProducts` calls to one or more insurance categories. Only valid category values from `PRODUCT_CATEGORIES` are retained.
 
 **Signature:**
+
 ```typescript
 static setCategory(
   categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][]
@@ -181,15 +203,16 @@ static setCategory(
 
 **Parameters:**
 
-| Parameter    | Type                    | Required | Description                                              |
-|--------------|-------------------------|----------|----------------------------------------------------------|
-| `categories` | `PRODUCT_CATEGORIES[]`  | ✅ Yes    | An array of category UUID values from `PRODUCT_CATEGORIES`. |
+| Parameter    | Type                   | Required | Description                                                 |
+| ------------ | ---------------------- | -------- | ----------------------------------------------------------- |
+| `categories` | `PRODUCT_CATEGORIES[]` | ✅ Yes    | An array of category UUID values from `PRODUCT_CATEGORIES`. |
 
 **Returns:** `typeof MyCoverAi` — The class itself, enabling method chaining.
 
 **Throws:** `Error` with message `"SDK Error: Please provide a category"` if the array is empty or not provided.
 
 **Example:**
+
 ```typescript
 import { PRODUCT_CATEGORIES } from 'mca-nodejs-sdk';
 
@@ -228,12 +251,12 @@ interface IMcaResponse {
 
 **Field Details:**
 
-| Field     | Type                    | Description                                                                   |
-|-----------|-------------------------|-------------------------------------------------------------------------------|
-| `code`    | `1 \| 0`                | `1` on success, `0` on API-level failure.                                      |
-| `message` | `string`                | A human-readable status message (e.g., `"Products fetched successfully"`).     |
-| `data`    | `any`                   | The primary response payload — an object or array depending on the endpoint.   |
-| `meta`    | `Record<string, any>`   | Pagination info on list endpoints: `{ page, limit, totalCount }`.              |
+| Field     | Type                  | Description                                                  |
+| --------- | --------------------- | ------------------------------------------------------------ |
+| `code`    | `1 \| 0`              | `1` on success, `0` on API-level failure.                    |
+| `message` | `string`              | A human-readable status message (e.g., `"Products fetched successfully"`). |
+| `data`    | `any`                 | The primary response payload — an object or array depending on the endpoint. |
+| `meta`    | `Record<string, any>` | Pagination info on list endpoints: `{ page, limit, totalCount }`. |
 
 ---
 
@@ -310,17 +333,18 @@ A curated registry of well-known MyCover.ai product IDs, organized by category. 
 import { PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
 ```
 
-| Category   | Products Available                                                                                               |
-|------------|------------------------------------------------------------------------------------------------------------------|
-| `AUTO`     | `CoronationComprehensiveAuto`, `CoronationMotorMaxBronze`, `CoronationMotorMaxSilver`, `CoronationMotorMaxGold`, `MiniComprehensiveAuto`, `MicroComprehensiveAuto`, `MonthlyComprehensiveAuto`, `ThirdPartyAuto`, `ThirdPartyBikeCover`, `AIICOComprehensiveAuto`, `STIComprehensiveAuto`, `SanlamComprehensiveAuto` |
-| `HEALTH`   | `PrimeCare`, `PrimeCarePlus`, `FlexiCareMiniRetail`, `FlexiCareRetail`, `Seniors`, `SeniorsPlus`, `SeniorsPrime`, `ZenCareRetail`, `ZenCarePlusRetail`, `ZenCarePrimeRetail` |
-| `GADGET`   | `DeviceCover`, `FlexiGuard`, `FlexiGuardMini`, `FlexiGuardPlus`, `LaptopInsuranceBasic`, `LaptopInsuranceStandard`, `PrimeProtect`, `PrimeProtectPlus` |
-| `LIFE`     | `LifeCover`, `AccidentCover`, `CreditLife`, `CredPlus`, `DefaultCreditLife`, `FlexiMoveBasic`, `FlexiMoveEssential`, `FlexiMovePlus`, `HospicashBasic`, `HospicashEssential`, `HospicashPlus`, `HospitalCashCover`, `PersonalAccidentCover` |
-| `TRAVEL`   | `TravelCover` |
-| `PACKAGE`  | `MarineCoverCappedImportAndExport`, `MarineCoverImportAndExport`, `OnDemandGoodsInTransit`, `OnDemandGoodsInTransitCapped` |
-| `CONTENT`  | `BuildingCover`, `CoronationHomeContentCover`, `AIICOHomeContentCover`, `SanlamHomeContentCover`, `ShopContentCover` |
+| Category  | Products Available                                           |
+| --------- | ------------------------------------------------------------ |
+| `AUTO`    | `CoronationComprehensiveAuto`, `CoronationMotorMaxBronze`, `CoronationMotorMaxSilver`, `CoronationMotorMaxGold`, `MiniComprehensiveAuto`, `MicroComprehensiveAuto`, `MonthlyComprehensiveAuto`, `ThirdPartyAuto`, `ThirdPartyBikeCover`, `AIICOComprehensiveAuto`, `STIComprehensiveAuto`, `SanlamComprehensiveAuto` |
+| `HEALTH`  | `PrimeCare`, `PrimeCarePlus`, `FlexiCareMiniRetail`, `FlexiCareRetail`, `Seniors`, `SeniorsPlus`, `SeniorsPrime`, `ZenCareRetail`, `ZenCarePlusRetail`, `ZenCarePrimeRetail` |
+| `GADGET`  | `DeviceCover`, `FlexiGuard`, `FlexiGuardMini`, `FlexiGuardPlus`, `LaptopInsuranceBasic`, `LaptopInsuranceStandard`, `PrimeProtect`, `PrimeProtectPlus` |
+| `LIFE`    | `LifeCover`, `AccidentCover`, `CreditLife`, `CredPlus`, `DefaultCreditLife`, `FlexiMoveBasic`, `FlexiMoveEssential`, `FlexiMovePlus`, `HospicashBasic`, `HospicashEssential`, `HospicashPlus`, `HospitalCashCover`, `PersonalAccidentCover` |
+| `TRAVEL`  | `TravelCover`                                                |
+| `PACKAGE` | `MarineCoverCappedImportAndExport`, `MarineCoverImportAndExport`, `OnDemandGoodsInTransit`, `OnDemandGoodsInTransitCapped` |
+| `CONTENT` | `BuildingCover`, `CoronationHomeContentCover`, `AIICOHomeContentCover`, `SanlamHomeContentCover`, `ShopContentCover` |
 
 **Example:**
+
 ```typescript
 const productId = PRODUCTS_RECOMMENDED.GADGET.DeviceCover;
 // '46240c74-fc6f-42f5-a0d2-66800b22d9aa'
@@ -341,6 +365,7 @@ All methods are **static** on the `MyCoverAi` class. They are all `async` (retur
 Retrieves a paginated list of insurance products. The results can be pre-filtered by calling [`setProducts`](#setproducts) and/or [`setCategory`](#setcategory) before calling this method.
 
 **Signature:**
+
 ```typescript
 static async fetchProducts(options: {
   page?: number;
@@ -350,16 +375,17 @@ static async fetchProducts(options: {
 
 **Parameters:**
 
-| Parameter | Type     | Required | Default | Description                        |
-|-----------|----------|----------|---------|------------------------------------|
-| `page`    | `number` | ❌ No     | `1`     | Page number for pagination.        |
-| `limit`   | `number` | ❌ No     | `10`    | Number of results per page.        |
+| Parameter | Type     | Required | Default | Description                 |
+| --------- | -------- | -------- | ------- | --------------------------- |
+| `page`    | `number` | ❌ No     | `1`     | Page number for pagination. |
+| `limit`   | `number` | ❌ No     | `10`    | Number of results per page. |
 
 **Response `data`:** `Array` of product objects.
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchProducts({ page: 1, limit: 20 });
 
@@ -376,6 +402,7 @@ if (response.code === 1) {
 Retrieves a single insurance product by its UUID. Internal fields (e.g., `sharing_formula`, `utilities`, `payment_providers`) are automatically stripped from the response.
 
 **Signature:**
+
 ```typescript
 static async fetchOneProduct(productId: string): Promise<IMcaResponse>
 ```
@@ -383,16 +410,18 @@ static async fetchOneProduct(productId: string): Promise<IMcaResponse>
 **Parameters:**
 
 | Parameter   | Type     | Required | Description                              |
-|-------------|----------|----------|------------------------------------------|
+| ----------- | -------- | -------- | ---------------------------------------- |
 | `productId` | `string` | ✅ Yes    | A valid UUID of the product to retrieve. |
 
 **Response `data`:** A single product object (internal fields stripped).
 
 **Throws:**
+
 - `"SDK Error: product id is required"` — if `productId` is missing.
 - `"SDK Error: Invalid product id"` — if `productId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchOneProduct(
   PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto
@@ -407,26 +436,29 @@ if (response.code === 1) {
 
 ### `fetchOneUtility`
 
-Retrieves a single utility object by its UUID. Utilities are supplementary data objects associated with specific insurance products (e.g., vehicle makes, hospital lists).
+Retrieves a single utility object by its UUID. Utilities are supplementary data objects associated with specific insurance products (e.g., vehicle makes, hospital lists). Refer to the [MyCoverAi doc](https://docs.mycover.ai/api-preference/operational/auxiliary) for more information.
 
 **Signature:**
+
 ```typescript
 static async fetchOneUtility(utilityId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
 
-| Parameter   | Type     | Required | Description                               |
-|-------------|----------|----------|-------------------------------------------|
-| `utilityId` | `string` | ✅ Yes    | A valid UUID of the utility to retrieve.  |
+| Parameter   | Type     | Required | Description                              |
+| ----------- | -------- | -------- | ---------------------------------------- |
+| `utilityId` | `string` | ✅ Yes    | A valid UUID of the utility to retrieve. |
 
 **Response `data`:** A utility object.
 
 **Throws:**
+
 - `"SDK Error: utility id is required"` — if `utilityId` is missing.
 - `"SDK Error: Invalid utility id"` — if `utilityId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchOneUtility('some-utility-uuid');
 
@@ -444,6 +476,7 @@ if (response.code === 1) {
 Calculates the insurance premium for a given product and form data before committing to a purchase. Use this to show users a cost estimate.
 
 **Signature:**
+
 ```typescript
 static async calculatePremium(
   productId: string,
@@ -453,29 +486,31 @@ static async calculatePremium(
 
 **Parameters:**
 
-| Parameter   | Type                  | Required | Description                                                           |
-|-------------|-----------------------|----------|-----------------------------------------------------------------------|
-| `productId` | `string`              | ✅ Yes    | A valid UUID of the product to calculate the premium for.            |
-| `form`      | `Record<string, any>` | ✅ Yes    | Product-specific form data (e.g., `cover_value`, `vehicle_year`, etc). |
+| Parameter   | Type                  | Required | Description                                                  |
+| ----------- | --------------------- | -------- | ------------------------------------------------------------ |
+| `productId` | `string`              | ✅ Yes    | A valid UUID of the product to calculate the premium for.    |
+| `form`      | `Record<string, any>` | ✅ Yes    | Product-specific form data (e.g., `value`, `cover_period`, etc). Each product detail page has its required payload for fetching its premium. See the [MyCoverAi doc](https://docs.mycover.ai/products/45140c74-fc6f-42f5-a0d2-66800b22d999) for more information. |
 
-**Response `data`:** An object containing the calculated premium amount and currency (e.g., `{ premium: 5000, currency: "NGN" }`).
+**Response `data`:** An object containing the calculated premium amount and currency (e.g., `{ price: 5000 }`).
 
 **Throws:**
+
 - `"SDK Error: product id is required"` — if `productId` is missing.
 - `"SDK Error: Invalid product id"` — if `productId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.calculatePremium(
-  PRODUCTS_RECOMMENDED.GADGET.DeviceCover,
+  PRODUCTS_RECOMMENDED.AUTO.ComprehensiveAuto,
   {
-    cover_value: 250000,
-    device_type: 'smartphone',
+    vehicle_value: 6500000,
+    vehicle_model: 'Camry',
   }
 );
 
 if (response.code === 1) {
-  console.log('Estimated premium:', response.data.premium, response.data.currency);
+  console.log('Estimated premium:', response.data.price);
 }
 ```
 
@@ -486,6 +521,7 @@ if (response.code === 1) {
 Purchases an insurance policy for a customer. The `form` parameter must satisfy the `IBuyForm` interface, and may include additional product-specific fields.
 
 **Signature:**
+
 ```typescript
 static async buy<T extends IBuyForm>(
   productId: string,
@@ -495,32 +531,34 @@ static async buy<T extends IBuyForm>(
 
 **Parameters:**
 
-| Parameter   | Type              | Required | Description                                              |
-|-------------|-------------------|----------|----------------------------------------------------------|
-| `productId` | `string`          | ✅ Yes    | A valid UUID of the product to purchase.                |
-| `form`      | `T extends IBuyForm` | ✅ Yes | Customer and product-specific details. See [`IBuyForm`](#ibuyform). |
+| Parameter   | Type                 | Required | Description                                                  |
+| ----------- | -------------------- | -------- | ------------------------------------------------------------ |
+| `productId` | `string`             | ✅ Yes    | A valid UUID of the product to purchase.                     |
+| `form`      | `T extends IBuyForm` | ✅ Yes    | Customer and product-specific details. See [`IBuyForm`](#ibuyform). |
 
-**Response `data`:** A policy/purchase object including the new policy ID and status (e.g., `{ policy_id: "...", status: "active" }`).
+**Response `data`:** A policy/purchase object including the policy number and status (e.g., `{ policy_number: "...", is_active: true }`).
 
 **Throws:**
+
 - `"SDK Error: product id is required"` — if `productId` is missing.
 - `"SDK Error: Invalid product id"` — if `productId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.buy(PRODUCTS_RECOMMENDED.LIFE.AccidentCover, {
   first_name: 'Amara',
   last_name: 'Okonkwo',
   email: 'amara@example.com',
   date_of_birth: '1992-05-14',
-  phone_number: '+2348012345678',
+  phone_number: '2348012345678',
   gender: 'Female',
   address: '5 Broad Street, Lagos',
   bought_for_self: true,
 });
 
 if (response.code === 1) {
-  console.log('Policy created:', response.data.policy_id);
+  console.log('Policy created:', response.data.policy_number);
 } else {
   console.error('Purchase failed:', response.message);
 }
@@ -533,6 +571,7 @@ if (response.code === 1) {
 Renews an existing insurance policy identified by its `policyId`.
 
 **Signature:**
+
 ```typescript
 static async renew(
   policyId: string,
@@ -542,18 +581,20 @@ static async renew(
 
 **Parameters:**
 
-| Parameter  | Type                  | Required | Description                                                              |
-|------------|-----------------------|----------|--------------------------------------------------------------------------|
-| `policyId` | `string`              | ✅ Yes    | A valid UUID of the policy to renew.                                    |
+| Parameter  | Type                  | Required | Description                                                  |
+| ---------- | --------------------- | -------- | ------------------------------------------------------------ |
+| `policyId` | `string`              | ✅ Yes    | A valid UUID of the policy to renew.                         |
 | `payload`  | `Record<string, any>` | ✅ Yes    | Renewal-specific data required by the product (may be an empty object). |
 
-**Response `data`:** A renewal confirmation object (e.g., `{ renewal_id: "..." }`).
+**Response `data`:** A renewal confirmation object (e.g., `{ policy_number: "..." }`).
 
 **Throws:**
+
 - `"SDK Error: policy id is required"` — if `policyId` is missing.
 - `"SDK Error: Invalid policy id"` — if `policyId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.renew('policy-uuid-here', {
   // product-specific renewal fields
@@ -573,6 +614,7 @@ if (response.code === 1) {
 Retrieves a paginated, filterable list of insurance policies.
 
 **Signature:**
+
 ```typescript
 static async fetchPolicies(options: {
   page?: number;
@@ -590,7 +632,7 @@ static async fetchPolicies(options: {
 **Parameters:**
 
 | Parameter          | Type      | Required | Default | Description                                                  |
-|--------------------|-----------|----------|---------|--------------------------------------------------------------|
+| ------------------ | --------- | -------- | ------- | ------------------------------------------------------------ |
 | `page`             | `number`  | ❌ No     | `1`     | Page number.                                                 |
 | `limit`            | `number`  | ❌ No     | `10`    | Results per page.                                            |
 | `search`           | `string`  | ❌ No     | —       | Free-text search across policy fields.                       |
@@ -606,17 +648,19 @@ static async fetchPolicies(options: {
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Throws:**
+
 - `"SDK Error: Invalid product id"` — if `productId` is provided but not a valid UUID.
 - `"SDK Error: Invalid date: ..."` — if any date filter is not in `yyyy-mm-dd` format.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchPolicies({
   page: 1,
   limit: 10,
   isActive: true,
-  activatedAtStart: '2024-01-01',
-  activatedAtEnd: '2024-12-31',
+  activatedAtStart: '2026-01-01',
+  activatedAtEnd: '2026-12-31',
 });
 
 if (response.code === 1) {
@@ -628,9 +672,10 @@ if (response.code === 1) {
 
 ### `fetchOnePolicy`
 
-Retrieves a single policy by its UUID. Internal fields (`mca_payload`, `as_service_meta`, `history`) are automatically stripped from the response.
+Retrieves a single policy by its UUID.
 
 **Signature:**
+
 ```typescript
 static async fetchOnePolicy(policyId: string): Promise<IMcaResponse>
 ```
@@ -638,21 +683,23 @@ static async fetchOnePolicy(policyId: string): Promise<IMcaResponse>
 **Parameters:**
 
 | Parameter  | Type     | Required | Description                             |
-|------------|----------|----------|-----------------------------------------|
+| ---------- | -------- | -------- | --------------------------------------- |
 | `policyId` | `string` | ✅ Yes    | A valid UUID of the policy to retrieve. |
 
-**Response `data`:** A single policy object (internal fields stripped).
+**Response `data`:** A single policy object.
 
 **Throws:**
+
 - `"SDK Error: policy id is required"` — if `policyId` is missing.
 - `"SDK Error: Invalid policy id"` — if `policyId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchOnePolicy('policy-uuid-here');
 
 if (response.code === 1) {
-  console.log('Policy status:', response.data.status);
+  console.log('Policy status:', response.data.is_active);
 }
 ```
 
@@ -665,6 +712,7 @@ if (response.code === 1) {
 Retrieves a paginated, filterable list of insurance claims.
 
 **Signature:**
+
 ```typescript
 static async fetchClaims(options: {
   page?: number;
@@ -680,31 +728,33 @@ static async fetchClaims(options: {
 
 **Parameters:**
 
-| Parameter    | Type      | Required | Default | Description                                                          |
-|--------------|-----------|----------|---------|----------------------------------------------------------------------|
-| `page`       | `number`  | ❌ No     | `1`     | Page number.                                                         |
-| `limit`      | `number`  | ❌ No     | `10`    | Results per page.                                                    |
-| `status`     | `string`  | ❌ No     | —       | Filter by claim status (e.g., `"pending"`, `"approved"`, `"rejected"`). |
-| `type`       | `string`  | ❌ No     | —       | Filter by claim type (e.g., `"medical"`, `"accident"`).              |
-| `customerId` | `string`  | ❌ No     | —       | Filter claims belonging to a specific customer UUID.                 |
-| `startDate`  | `string`  | ❌ No     | —       | Filter claims created on or after this date (`yyyy-mm-dd`).          |
-| `endDate`    | `string`  | ❌ No     | —       | Filter claims created on or before this date (`yyyy-mm-dd`).         |
-| `search`     | `string`  | ❌ No     | —       | Free-text search across claim fields.                                |
+| Parameter    | Type     | Required | Default | Description                                                  |
+| ------------ | -------- | -------- | ------- | ------------------------------------------------------------ |
+| `page`       | `number` | ❌ No     | `1`     | Page number.                                                 |
+| `limit`      | `number` | ❌ No     | `10`    | Results per page.                                            |
+| `status`     | `string` | ❌ No     | —       | Filter by claim status (e.g., `"Pending"`, `"Approved"`, `"Declined"`). |
+| `type`       | `string` | ❌ No     | —       | Filter by claim type (e.g., `"Vehicle"`, `"Gadget"`).        |
+| `customerId` | `string` | ❌ No     | —       | Filter claims belonging to a specific customer UUID.         |
+| `startDate`  | `string` | ❌ No     | —       | Filter claims created on or after this date (`yyyy-mm-dd`).  |
+| `endDate`    | `string` | ❌ No     | —       | Filter claims created on or before this date (`yyyy-mm-dd`). |
+| `search`     | `string` | ❌ No     | —       | Free-text search across claim fields.                        |
 
 **Response `data`:** `Array` of claim objects.
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Throws:**
+
 - `"SDK Error: Invalid customer id"` — if `customerId` is provided but not a valid UUID.
 - `"SDK Error: Invalid date: ..."` — if `startDate` or `endDate` is not in `yyyy-mm-dd` format.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchClaims({
-  status: 'pending',
-  startDate: '2024-06-01',
-  endDate: '2024-06-30',
+  status: 'Pending',
+  startDate: '2026-06-01',
+  endDate: '2026-06-30',
 });
 
 if (response.code === 1) {
@@ -716,9 +766,10 @@ if (response.code === 1) {
 
 ### `fetchOneClaim`
 
-Retrieves a single claim by its UUID. Internal fields (`mca_payload`, `as_service_meta`, `history`) are automatically stripped from the response.
+Retrieves a single claim by its UUID.
 
 **Signature:**
+
 ```typescript
 static async fetchOneClaim(claimId: string): Promise<IMcaResponse>
 ```
@@ -726,16 +777,18 @@ static async fetchOneClaim(claimId: string): Promise<IMcaResponse>
 **Parameters:**
 
 | Parameter | Type     | Required | Description                            |
-|-----------|----------|----------|----------------------------------------|
+| --------- | -------- | -------- | -------------------------------------- |
 | `claimId` | `string` | ✅ Yes    | A valid UUID of the claim to retrieve. |
 
-**Response `data`:** A single claim object (internal fields stripped).
+**Response `data`:** A single claim object.
 
 **Throws:**
+
 - `"SDK Error: claim id is required"` — if `claimId` is missing.
 - `"SDK Error: Invalid claim id"` — if `claimId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchOneClaim('claim-uuid-here');
 
@@ -753,6 +806,7 @@ if (response.code === 1) {
 Retrieves a paginated, filterable list of customers.
 
 **Signature:**
+
 ```typescript
 static async fetchCustomers(options: {
   page?: number;
@@ -766,28 +820,30 @@ static async fetchCustomers(options: {
 
 **Parameters:**
 
-| Parameter        | Type      | Required | Default | Description                                                         |
-|------------------|-----------|----------|---------|---------------------------------------------------------------------|
-| `page`           | `number`  | ❌ No     | `1`     | Page number.                                                        |
-| `limit`          | `number`  | ❌ No     | `10`    | Results per page.                                                   |
-| `isActive`       | `boolean` | ❌ No     | —       | Filter by active (`true`) or inactive (`false`) customers.          |
-| `createdAtStart` | `string`  | ❌ No     | —       | Filter customers created on or after this date (`yyyy-mm-dd`).      |
-| `createdAtEnd`   | `string`  | ❌ No     | —       | Filter customers created on or before this date (`yyyy-mm-dd`).     |
-| `search`         | `string`  | ❌ No     | —       | Free-text search by name, email, or other customer fields.          |
+| Parameter        | Type      | Required | Default | Description                                                  |
+| ---------------- | --------- | -------- | ------- | ------------------------------------------------------------ |
+| `page`           | `number`  | ❌ No     | `1`     | Page number.                                                 |
+| `limit`          | `number`  | ❌ No     | `10`    | Results per page.                                            |
+| `isActive`       | `boolean` | ❌ No     | —       | Filter by active (`true`) or inactive (`false`) customers.   |
+| `createdAtStart` | `string`  | ❌ No     | —       | Filter customers created on or after this date (`yyyy-mm-dd`). |
+| `createdAtEnd`   | `string`  | ❌ No     | —       | Filter customers created on or before this date (`yyyy-mm-dd`). |
+| `search`         | `string`  | ❌ No     | —       | Free-text search by name, email, or other customer fields.   |
 
 **Response `data`:** `Array` of customer objects.
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Throws:**
+
 - `"SDK Error: Invalid date: ..."` — if `createdAtStart` or `createdAtEnd` is not in `yyyy-mm-dd` format.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchCustomers({
   search: 'amara',
   isActive: true,
-  createdAtStart: '2024-01-01',
+  createdAtStart: '2026-01-01',
 });
 
 if (response.code === 1) {
@@ -802,6 +858,7 @@ if (response.code === 1) {
 Retrieves a single customer by their UUID.
 
 **Signature:**
+
 ```typescript
 static async fetchOneCustomer(customerId: string): Promise<IMcaResponse>
 ```
@@ -809,16 +866,18 @@ static async fetchOneCustomer(customerId: string): Promise<IMcaResponse>
 **Parameters:**
 
 | Parameter    | Type     | Required | Description                               |
-|--------------|----------|----------|-------------------------------------------|
+| ------------ | -------- | -------- | ----------------------------------------- |
 | `customerId` | `string` | ✅ Yes    | A valid UUID of the customer to retrieve. |
 
 **Response `data`:** A single customer object.
 
 **Throws:**
+
 - `"SDK Error: customer id is required"` — if `customerId` is missing.
 - `"SDK Error: Invalid customer id"` — if `customerId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchOneCustomer('customer-uuid-here');
 
@@ -834,6 +893,7 @@ if (response.code === 1) {
 Retrieves all purchases made by a specific customer, with optional pagination and renewal filtering.
 
 **Signature:**
+
 ```typescript
 static async fetchCustomerPurchases(options: {
   customerId: string;
@@ -845,11 +905,11 @@ static async fetchCustomerPurchases(options: {
 
 **Parameters:**
 
-| Parameter    | Type      | Required | Default | Description                                                      |
-|--------------|-----------|----------|---------|------------------------------------------------------------------|
-| `customerId` | `string`  | ✅ Yes    | —       | A valid UUID of the customer.                                   |
-| `page`       | `number`  | ❌ No     | `1`     | Page number.                                                     |
-| `limit`      | `number`  | ❌ No     | `10`    | Results per page.                                                |
+| Parameter    | Type      | Required | Default | Description                                                  |
+| ------------ | --------- | -------- | ------- | ------------------------------------------------------------ |
+| `customerId` | `string`  | ✅ Yes    | —       | A valid UUID of the customer.                                |
+| `page`       | `number`  | ❌ No     | `1`     | Page number.                                                 |
+| `limit`      | `number`  | ❌ No     | `10`    | Results per page.                                            |
 | `isRenewal`  | `boolean` | ❌ No     | —       | If `true`, returns only renewed purchases. `false` for originals. |
 
 **Response `data`:** `Array` of purchase objects for the customer.
@@ -857,10 +917,12 @@ static async fetchCustomerPurchases(options: {
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Throws:**
+
 - `"SDK Error: customer id is required"` — if `customerId` is missing.
 - `"SDK Error: Invalid customer id"` — if `customerId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchCustomerPurchases({
   customerId: 'customer-uuid-here',
@@ -881,6 +943,7 @@ if (response.code === 1) {
 Retrieves all insurance policies belonging to a specific customer.
 
 **Signature:**
+
 ```typescript
 static async fetchCustomerPolicies(options: {
   customerId: string;
@@ -891,21 +954,23 @@ static async fetchCustomerPolicies(options: {
 
 **Parameters:**
 
-| Parameter    | Type     | Required | Default | Description                       |
-|--------------|----------|----------|---------|-----------------------------------|
-| `customerId` | `string` | ✅ Yes    | —       | A valid UUID of the customer.    |
-| `page`       | `number` | ❌ No     | `1`     | Page number.                      |
-| `limit`      | `number` | ❌ No     | `10`    | Results per page.                 |
+| Parameter    | Type     | Required | Default | Description                   |
+| ------------ | -------- | -------- | ------- | ----------------------------- |
+| `customerId` | `string` | ✅ Yes    | —       | A valid UUID of the customer. |
+| `page`       | `number` | ❌ No     | `1`     | Page number.                  |
+| `limit`      | `number` | ❌ No     | `10`    | Results per page.             |
 
 **Response `data`:** `Array` of policy objects for the customer.
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Throws:**
+
 - `"SDK Error: customer id is required"` — if `customerId` is missing.
 - `"SDK Error: Invalid customer id"` — if `customerId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchCustomerPolicies({
   customerId: 'customer-uuid-here',
@@ -925,6 +990,7 @@ if (response.code === 1) {
 Retrieves a paginated, filterable list of all purchases across all customers.
 
 **Signature:**
+
 ```typescript
 static async fetchPurchases(options: {
   page?: number;
@@ -938,28 +1004,30 @@ static async fetchPurchases(options: {
 
 **Parameters:**
 
-| Parameter        | Type      | Required | Default | Description                                                       |
-|------------------|-----------|----------|---------|-------------------------------------------------------------------|
-| `page`           | `number`  | ❌ No     | `1`     | Page number.                                                      |
-| `limit`          | `number`  | ❌ No     | `10`    | Results per page.                                                 |
-| `search`         | `string`  | ❌ No     | —       | Free-text search across purchase fields.                          |
+| Parameter        | Type      | Required | Default | Description                                                  |
+| ---------------- | --------- | -------- | ------- | ------------------------------------------------------------ |
+| `page`           | `number`  | ❌ No     | `1`     | Page number.                                                 |
+| `limit`          | `number`  | ❌ No     | `10`    | Results per page.                                            |
+| `search`         | `string`  | ❌ No     | —       | Free-text search across purchase fields.                     |
 | `isRenewal`      | `boolean` | ❌ No     | —       | If `true`, returns only renewals. `false` for original purchases. |
-| `createdAtStart` | `string`  | ❌ No     | —       | Filter purchases created on or after this date (`yyyy-mm-dd`).    |
-| `createdAtEnd`   | `string`  | ❌ No     | —       | Filter purchases created on or before this date (`yyyy-mm-dd`).   |
+| `createdAtStart` | `string`  | ❌ No     | —       | Filter purchases created on or after this date (`yyyy-mm-dd`). |
+| `createdAtEnd`   | `string`  | ❌ No     | —       | Filter purchases created on or before this date (`yyyy-mm-dd`). |
 
 **Response `data`:** `Array` of purchase objects.
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
 **Throws:**
+
 - `"SDK Error: Invalid date: ..."` — if `createdAtStart` or `createdAtEnd` is not in `yyyy-mm-dd` format.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchPurchases({
   isRenewal: false,
-  createdAtStart: '2024-01-01',
-  createdAtEnd: '2024-03-31',
+  createdAtStart: '2026-01-01',
+  createdAtEnd: '2026-03-31',
   limit: 25,
 });
 
@@ -975,6 +1043,7 @@ if (response.code === 1) {
 Retrieves a single purchase by its UUID. Internal fields (`dividend`, `renewal_history`) are automatically stripped from the response.
 
 **Signature:**
+
 ```typescript
 static async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse>
 ```
@@ -982,16 +1051,18 @@ static async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse>
 **Parameters:**
 
 | Parameter    | Type     | Required | Description                               |
-|--------------|----------|----------|-------------------------------------------|
+| ------------ | -------- | -------- | ----------------------------------------- |
 | `purchaseId` | `string` | ✅ Yes    | A valid UUID of the purchase to retrieve. |
 
 **Response `data`:** A single purchase object (internal fields stripped).
 
 **Throws:**
+
 - `"SDK Error: purchase id is required"` — if `purchaseId` is missing.
 - `"SDK Error: Invalid purchase id"` — if `purchaseId` is not a valid UUID.
 
 **Example:**
+
 ```typescript
 const response = await MyCoverAi.fetchOnePurchase('purchase-uuid-here');
 
@@ -1080,43 +1151,12 @@ const response = await MyCoverAi.fetchProducts({ limit: 5 });
 
 ---
 
-## Running Tests
-
-The SDK ships with a comprehensive Jest test suite covering all public methods.
-
-```bash
-# Run all tests
-npm test
-
-# Lint the source
-npm run lint
-
-# Format the source
-npm run format
-```
-
-To develop locally with live rebuilding:
-
-```bash
-npm run dev
-```
-
-To link the package for local integration testing:
-
-```bash
-npm link
-```
-
-Then in your consumer project:
-
-```bash
-npm link mca-nodejs-sdk
-```
-
-For more on local integration testing, see the [test consumer repo](https://github.com/Glitzyken/test-mca-nodejs-sdk).
-
----
-
 ## License
 
-ISC © [Kenneth Jimmy](https://github.com/Glitzyken)
+This project is licensed under the **Apache License 2.0** — see the [LICENSE](./LICENSE) file for the full text.
+
+In short, you're free to use, modify, and distribute this SDK (including for commercial purposes), provided you retain the original copyright notice and license text. The Apache 2.0 License also includes an express grant of patent rights from contributors, and requires stating any significant changes made to the code.
+
+### Contributing
+
+This project is open to contributions! By submitting a pull request or contribution, you agree that your contribution will be licensed under the same Apache License 2.0 that covers the project. See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.

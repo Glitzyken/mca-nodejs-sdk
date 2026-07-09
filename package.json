@@ -24,6 +24,9 @@
   ],
   "author": "Kenneth Jimmy",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",

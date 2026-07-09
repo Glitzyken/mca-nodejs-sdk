@@ -8,236 +8,282 @@ import { FetchClient, FetchError } from './utils/client';
 import { IBuyForm, IMcaResponse } from './shared/interface';
 
 class MyCoverAi {
-  constructor() {}
+  private baseURL = 'https://v2.api.mycover.ai/v2';
+  private apiKey: string;
+  private myProducts: string[] = [];
+  private selectedCategories: string[] = [];
+  private client: FetchClient;
 
-  // props
-  private static baseURL = 'https://v2.api.mycover.ai/v2';
-  private static apiKey: string;
-  private static myProducts: string[] = [];
-  private static selectedCategories: string[] = [];
-  private static client = new FetchClient({
-    baseURL: MyCoverAi.baseURL,
-  });
-
-  static setApiKey(key: string) {
-    if (!key) {
-      MyCoverAi.throwError('API Key is required');
+  constructor(apiKey: string) {
+    if (!apiKey) {
+      throw new Error('SDK Error: API Key is required');
     }
 
-    MyCoverAi.apiKey = key;
-
-    const headers: Record<string, string> = {};
-
-    headers['Authorization'] = `Bearer ${MyCoverAi.apiKey}`;
-
-    MyCoverAi.client = new FetchClient({
-      baseURL: MyCoverAi.baseURL,
-      headers,
+    this.apiKey = apiKey;
+    this.client = new FetchClient({
+      baseURL: this.baseURL,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+      },
     });
-
-    return this;
   }
 
-  static setProducts(productIds: string[]) {
+  /**
+   * Sets the specific product IDs to filter subsequent product fetches.
+   *
+   * @param productIds - Array of product UUIDs.
+   * @returns The current MyCoverAi instance for builder chaining.
+   * @throws {Error} If productIds is empty or contains invalid UUIDs.
+   */
+  setProducts(productIds: string[]) {
     if (!productIds?.length) {
-      MyCoverAi.throwError('Please provide at least one product ID');
+      this.throwError('Please provide at least one product ID');
     }
 
+    const invalidIds: string[] = [];
     const validProductIds: string[] = [];
 
     for (const id of productIds) {
       if (isValidUUID(id)) {
         validProductIds.push(id);
+      } else {
+        invalidIds.push(id);
       }
     }
 
-    MyCoverAi.myProducts = validProductIds;
+    if (invalidIds.length > 0) {
+      this.throwError(`Invalid product ID(s): ${invalidIds.join(', ')}`);
+    }
+
+    this.myProducts = validProductIds;
 
     return this;
   }
 
-  static setCategory(
+  /**
+   * Sets the specific categories to filter subsequent product fetches.
+   *
+   * @param categories - Array of category IDs or keys.
+   * @returns The current MyCoverAi instance for builder chaining.
+   * @throws {Error} If categories is empty or contains invalid categories.
+   */
+  setCategory(
     categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][],
   ) {
     if (!categories?.length) {
-      MyCoverAi.throwError('Please provide a category');
+      this.throwError('Please provide a category');
     }
 
+    const invalidCategories: string[] = [];
     const validCategories: string[] = [];
 
     for (const category of categories) {
       if (Object.values(PRODUCT_CATEGORIES).includes(category)) {
         validCategories.push(category);
+      } else {
+        invalidCategories.push(category);
       }
     }
 
-    MyCoverAi.selectedCategories = validCategories;
+    if (invalidCategories.length > 0) {
+      this.throwError(`Invalid category(ies): ${invalidCategories.join(', ')}`);
+    }
+
+    this.selectedCategories = validCategories;
 
     return this;
   }
 
-  static async calculatePremium(productId: string, form: Record<string, any>) {
-    MyCoverAi.validateId(productId, 'product');
-
-    const payload = {
-      product_id: productId,
-      body: { ...form },
-    };
-
+  /**
+   * Calculates the premium cost for a given product and form inputs.
+   *
+   * @param productId - The UUID of the product.
+   * @param form - Record representing input fields required for calculation.
+   * @returns A promise resolving to the API response.
+   */
+  async calculatePremium(
+    productId: string,
+    form: Record<string, any>,
+  ): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.post(
-        ENDPOINTS.getPremium,
-        payload,
-      );
+      this.validateId(productId, 'product');
 
-      return MyCoverAi.handleSuccessResponse(
+      const payload = {
+        product_id: productId,
+        body: { ...form },
+      };
+
+      const { data } = await this.client.post(ENDPOINTS.getPremium, payload);
+
+      return this.handleSuccessResponse(
         'Premium calculated successfully',
         data,
       );
     } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
   }
 
-  static async buy<T extends IBuyForm>(productId: string, form: T) {
-    MyCoverAi.validateId(productId, 'product');
-
-    const payload = {
-      ...form,
-      product_id: productId,
-    };
-
+  /**
+   * Purchases a policy for a specific product.
+   *
+   * @param productId - The UUID of the product.
+   * @param form - The customer purchase details.
+   * @returns A promise resolving to the purchase API response.
+   */
+  async buy<T extends IBuyForm>(
+    productId: string,
+    form: T,
+  ): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.post(
-        ENDPOINTS.buyProduct,
-        payload,
-      );
+      this.validateId(productId, 'product');
 
-      return MyCoverAi.handleSuccessResponse(
-        'Policy purchased successfully',
-        data,
-      );
+      const payload = {
+        ...form,
+        product_id: productId,
+      };
+
+      const { data } = await this.client.post(ENDPOINTS.buyProduct, payload);
+
+      return this.handleSuccessResponse('Policy purchased successfully', data);
     } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
   }
 
-  static async renew(policyId: string, payload: Record<string, any>) {
-    MyCoverAi.validateId(policyId, 'policy');
-
-    const body = {
-      ...payload,
-    };
-
+  /**
+   * Renews an existing policy by its ID.
+   *
+   * @param policyId - The UUID of the policy to renew.
+   * @param payload - Additional renewal options/fields.
+   * @returns A promise resolving to the renewal API response.
+   */
+  async renew(
+    policyId: string,
+    payload: Record<string, any>,
+  ): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.post(
+      this.validateId(policyId, 'policy');
+
+      const body = {
+        ...payload,
+      };
+
+      const { data } = await this.client.post(
         ENDPOINTS.renewProduct.replace(':id', policyId),
         body,
       );
 
-      return MyCoverAi.handleSuccessResponse(
-        'Policy renewed successfully',
-        data,
-      );
+      return this.handleSuccessResponse('Policy renewed successfully', data);
     } catch (error) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
   }
 
-  static async fetchProducts({
+  /**
+   * Fetches all products, paginated and optionally filtered by selected categories/products.
+   *
+   * @param options - Paging configuration parameters.
+   * @returns A promise resolving to the list of products.
+   */
+  async fetchProducts({
     page = 1,
     limit = 10,
   }: {
     page?: number;
     limit?: number;
-  }) {
-    const params = {
-      page,
-      limit,
-      product_id: MyCoverAi.myProducts,
-      category_id: MyCoverAi.selectedCategories,
-    };
-
-    let products: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllProducts, {
+      const params = {
+        page,
+        limit,
+        product_id: this.myProducts,
+        category_id: this.selectedCategories,
+      };
+
+      const { data } = await this.client.get(ENDPOINTS.getAllProducts, {
         params,
       });
 
-      products = data?.products;
-      totalCount = data?.total_count || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const products = data?.products || [];
+      const totalCount = data?.total_count || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Products fetched successfully',
-      products,
-      {
-        page,
-        limit,
-        totalCount,
-      },
-    );
+      return this.handleSuccessResponse(
+        'Products fetched successfully',
+        products,
+        {
+          page,
+          limit,
+          totalCount,
+        },
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchOneProduct(productId: string) {
-    MyCoverAi.validateId(productId, 'product');
-
-    let product: Record<string, any> = {};
-
+  /**
+   * Fetches a single product by its ID.
+   *
+   * @param productId - The UUID of the product.
+   * @returns A promise resolving to the product details.
+   */
+  async fetchOneProduct(productId: string): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(productId, 'product');
+
+      const { data } = await this.client.get(
         ENDPOINTS.getOneProduct.replace(':id', productId),
       );
 
-      // remove extra fields
-      if (data) {
-        'sharing_formula' in data && delete data.sharing_formula;
-        'set_by' in data && delete data.set_by;
-        'utilities' in data && delete data.utilities;
-        'payment_providers' in data && delete data.payment_providers;
-        'utility_batches' in data && delete data.utility_batches;
-        'dependency' in data && delete data.dependency;
-        'meta' in data && delete data.meta;
-        'document_url' in data && delete data.document_url;
+      const product = { ...data };
+      if (product) {
+        'sharing_formula' in product && delete product.sharing_formula;
+        'set_by' in product && delete product.set_by;
+        'utilities' in product && delete product.utilities;
+        'payment_providers' in product && delete product.payment_providers;
+        'utility_batches' in product && delete product.utility_batches;
+        'dependency' in product && delete product.dependency;
+        'meta' in product && delete product.meta;
+        'document_url' in product && delete product.document_url;
       }
 
-      product = data;
+      return this.handleSuccessResponse(
+        'Product fetched successfully',
+        product,
+      );
     } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
-
-    return MyCoverAi.handleSuccessResponse(
-      'Product fetched successfully',
-      product,
-    );
   }
 
-  static async fetchOneUtility(utilityId: string) {
-    MyCoverAi.validateId(utilityId, 'utility');
-
-    let utility: any = {};
-
+  /**
+   * Fetches details of a single product utility.
+   *
+   * @param utilityId - The UUID of the utility.
+   * @returns A promise resolving to the utility details.
+   */
+  async fetchOneUtility(utilityId: string): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(utilityId, 'utility');
+
+      const { data } = await this.client.get(
         ENDPOINTS.getUtility.replace(':id', utilityId),
       );
 
-      utility = data;
+      return this.handleSuccessResponse('Utility fetched successfully', data);
     } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
-
-    return MyCoverAi.handleSuccessResponse(
-      'Utility fetched successfully',
-      utility,
-    );
   }
 
-  static async fetchPolicies({
+  /**
+   * Fetches a paginated list of policies with optional search, date, and status filters.
+   *
+   * @param filters - Parameters to filter the list of policies.
+   * @returns A promise resolving to the list of policies.
+   */
+  async fetchPolicies({
     page = 1,
     limit = 10,
     search,
@@ -257,79 +303,81 @@ class MyCoverAi {
     activatedAtEnd?: string;
     expiredAtStart?: string;
     expiredAtEnd?: string;
-  }) {
-    if (productId) MyCoverAi.validateId(productId, 'product');
-    if (activatedAtStart) MyCoverAi.validateDate(activatedAtStart);
-    if (activatedAtEnd) MyCoverAi.validateDate(activatedAtEnd);
-    if (expiredAtStart) MyCoverAi.validateDate(expiredAtStart);
-    if (expiredAtEnd) MyCoverAi.validateDate(expiredAtEnd);
-
-    const params = {
-      page,
-      limit,
-      search,
-      is_active: isActive,
-      product_id: productId,
-      activated_at_start: activatedAtStart,
-      activated_at_end: activatedAtEnd,
-      expired_at_start: expiredAtStart,
-      expired_at_end: expiredAtEnd,
-    };
-
-    let policies: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllPolicies, {
+      if (productId) this.validateId(productId, 'product');
+      if (activatedAtStart) this.validateDate(activatedAtStart);
+      if (activatedAtEnd) this.validateDate(activatedAtEnd);
+      if (expiredAtStart) this.validateDate(expiredAtStart);
+      if (expiredAtEnd) this.validateDate(expiredAtEnd);
+
+      const params = {
+        page,
+        limit,
+        search,
+        is_active: isActive,
+        product_id: productId,
+        activated_at_start: activatedAtStart,
+        activated_at_end: activatedAtEnd,
+        expired_at_start: expiredAtStart,
+        expired_at_end: expiredAtEnd,
+      };
+
+      const { data } = await this.client.get(ENDPOINTS.getAllPolicies, {
         params,
       });
 
-      policies = data?.policies;
-      totalCount = data?.total_result || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const policies = data?.policies || [];
+      const totalCount = data?.total_result || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Policies fetched successfully',
-      policies,
-      {
-        page,
-        limit,
-        totalCount,
-      },
-    );
+      return this.handleSuccessResponse(
+        'Policies fetched successfully',
+        policies,
+        {
+          page,
+          limit,
+          totalCount,
+        },
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchOnePolicy(policyId: string) {
-    MyCoverAi.validateId(policyId, 'policy');
-
-    let policy: Record<string, any> = {};
-
+  /**
+   * Fetches details of a single policy.
+   *
+   * @param policyId - The UUID of the policy.
+   * @returns A promise resolving to the policy details.
+   */
+  async fetchOnePolicy(policyId: string): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(policyId, 'policy');
+
+      const { data } = await this.client.get(
         ENDPOINTS.getOnePolicy.replace(':id', policyId),
       );
 
-      // remove extra fields
-      if (data) {
-        'mca_payload' in data && delete data.mca_payload;
-        'as_service_meta' in data && delete data.as_service_meta;
-        'history' in data && delete data.history;
+      const policy = { ...data };
+      if (policy) {
+        'mca_payload' in policy && delete policy.mca_payload;
+        'as_service_meta' in policy && delete policy.as_service_meta;
+        'history' in policy && delete policy.history;
       }
 
-      policy = data;
+      return this.handleSuccessResponse('Policy fetched successfully', policy);
     } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
-
-    return MyCoverAi.handleSuccessResponse(
-      'Policy fetched successfully',
-      policy,
-    );
   }
 
-  static async fetchClaims({
+  /**
+   * Fetches a paginated list of claims with optional filters.
+   *
+   * @param filters - Parameters to filter claims.
+   * @returns A promise resolving to the list of claims.
+   */
+  async fetchClaims({
     page = 1,
     limit = 10,
     status,
@@ -347,73 +395,74 @@ class MyCoverAi {
     startDate?: string;
     endDate?: string;
     search?: string;
-  }) {
-    if (customerId) MyCoverAi.validateId(customerId, 'customer');
-    if (startDate) MyCoverAi.validateDate(startDate);
-    if (endDate) MyCoverAi.validateDate(endDate);
-
-    const params = {
-      page,
-      limit,
-      status,
-      type,
-      customer_id: customerId,
-      start_date: startDate,
-      end_date: endDate,
-      search,
-    };
-
-    let claims: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllClaims, {
+      if (customerId) this.validateId(customerId, 'customer');
+      if (startDate) this.validateDate(startDate);
+      if (endDate) this.validateDate(endDate);
+
+      const params = {
+        page,
+        limit,
+        status,
+        type,
+        customer_id: customerId,
+        start_date: startDate,
+        end_date: endDate,
+        search,
+      };
+
+      const { data } = await this.client.get(ENDPOINTS.getAllClaims, {
         params,
       });
 
-      claims = data?.claims;
-      totalCount = data?.total_result || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const claims = data?.claims || [];
+      const totalCount = data?.total_result || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Claims fetched successfully',
-      claims,
-      {
+      return this.handleSuccessResponse('Claims fetched successfully', claims, {
         page,
         limit,
         totalCount,
-      },
-    );
+      });
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchOneClaim(claimId: string) {
-    MyCoverAi.validateId(claimId, 'claim');
-
-    let claim: Record<string, any> = {};
-
+  /**
+   * Fetches details of a single claim.
+   *
+   * @param claimId - The UUID of the claim.
+   * @returns A promise resolving to the claim details.
+   */
+  async fetchOneClaim(claimId: string): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(claimId, 'claim');
+
+      const { data } = await this.client.get(
         ENDPOINTS.getOneClaim.replace(':id', claimId),
       );
 
-      // remove extra fields
-      if (data) {
-        'mca_payload' in data && delete data.mca_payload;
-        'as_service_meta' in data && delete data.as_service_meta;
-        'history' in data && delete data.history;
+      const claim = { ...data };
+      if (claim) {
+        'mca_payload' in claim && delete claim.mca_payload;
+        'as_service_meta' in claim && delete claim.as_service_meta;
+        'history' in claim && delete claim.history;
       }
 
-      claim = data;
+      return this.handleSuccessResponse('Claim fetched successfully', claim);
     } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
-
-    return MyCoverAi.handleSuccessResponse('Claim fetched successfully', claim);
   }
 
-  static async fetchCustomers({
+  /**
+   * Fetches a paginated list of customers.
+   *
+   * @param filters - Parameters to filter customers.
+   * @returns A promise resolving to the list of customers.
+   */
+  async fetchCustomers({
     page = 1,
     limit = 10,
     isActive,
@@ -427,66 +476,68 @@ class MyCoverAi {
     createdAtStart?: string;
     createdAtEnd?: string;
     search?: string;
-  }) {
-    if (createdAtStart) MyCoverAi.validateDate(createdAtStart);
-    if (createdAtEnd) MyCoverAi.validateDate(createdAtEnd);
-
-    const params = {
-      page,
-      limit,
-      is_active: isActive,
-      created_at_start: createdAtStart,
-      created_at_end: createdAtEnd,
-      search,
-    };
-
-    let customers: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllCustomers, {
+      if (createdAtStart) this.validateDate(createdAtStart);
+      if (createdAtEnd) this.validateDate(createdAtEnd);
+
+      const params = {
+        page,
+        limit,
+        is_active: isActive,
+        created_at_start: createdAtStart,
+        created_at_end: createdAtEnd,
+        search,
+      };
+
+      const { data } = await this.client.get(ENDPOINTS.getAllCustomers, {
         params,
       });
 
-      customers = data?.customers;
-      totalCount = data?.total_result || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const customers = data?.customers || [];
+      const totalCount = data?.total_result || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Customers fetched successfully',
-      customers,
-      {
-        page,
-        limit,
-        totalCount,
-      },
-    );
+      return this.handleSuccessResponse(
+        'Customers fetched successfully',
+        customers,
+        {
+          page,
+          limit,
+          totalCount,
+        },
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchOneCustomer(customerId: string) {
-    MyCoverAi.validateId(customerId, 'customer');
-
-    let customer: Record<string, any> = {};
-
+  /**
+   * Fetches details of a single customer.
+   *
+   * @param customerId - The UUID of the customer.
+   * @returns A promise resolving to the customer details.
+   */
+  async fetchOneCustomer(customerId: string): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(customerId, 'customer');
+
+      const { data } = await this.client.get(
         ENDPOINTS.getOneCustomer.replace(':id', customerId),
       );
 
-      customer = data;
+      return this.handleSuccessResponse('Customer fetched successfully', data);
     } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
-
-    return MyCoverAi.handleSuccessResponse(
-      'Customer fetched successfully',
-      customer,
-    );
   }
 
-  static async fetchCustomerPurchases({
+  /**
+   * Fetches purchases for a specific customer, paginated and filtered.
+   *
+   * @param options - Parameters including customerId, paging, and renewal flag.
+   * @returns A promise resolving to the list of customer purchases.
+   */
+  async fetchCustomerPurchases({
     customerId,
     page = 1,
     limit = 10,
@@ -496,44 +547,47 @@ class MyCoverAi {
     page?: number;
     limit?: number;
     isRenewal?: boolean;
-  }) {
-    MyCoverAi.validateId(customerId, 'customer');
-
-    const params = {
-      page,
-      limit,
-      is_renewal: isRenewal,
-    };
-
-    let purchases: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(customerId, 'customer');
+
+      const params = {
+        page,
+        limit,
+        is_renewal: isRenewal,
+      };
+
+      const { data } = await this.client.get(
         ENDPOINTS.getCustomerPurchases.replace(':id', customerId),
         {
           params,
         },
       );
 
-      purchases = data?.purchases;
-      totalCount = data?.total_result || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const purchases = data?.purchases || [];
+      const totalCount = data?.total_result || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Customer purchases fetched successfully',
-      purchases,
-      {
-        page,
-        limit,
-        totalCount,
-      },
-    );
+      return this.handleSuccessResponse(
+        'Customer purchases fetched successfully',
+        purchases,
+        {
+          page,
+          limit,
+          totalCount,
+        },
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchCustomerPolicies({
+  /**
+   * Fetches policies associated with a specific customer, paginated.
+   *
+   * @param options - Parameters including customerId and paging.
+   * @returns A promise resolving to the list of customer policies.
+   */
+  async fetchCustomerPolicies({
     customerId,
     page = 1,
     limit = 10,
@@ -541,43 +595,46 @@ class MyCoverAi {
     customerId: string;
     page?: number;
     limit?: number;
-  }) {
-    MyCoverAi.validateId(customerId, 'customer');
-
-    const params = {
-      page,
-      limit,
-    };
-
-    let policies: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(customerId, 'customer');
+
+      const params = {
+        page,
+        limit,
+      };
+
+      const { data } = await this.client.get(
         ENDPOINTS.getCustomerPolicies.replace(':id', customerId),
         {
           params,
         },
       );
 
-      policies = data?.policies;
-      totalCount = data?.total_result || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const policies = data?.policies || [];
+      const totalCount = data?.total_result || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Customer policies fetched successfully',
-      policies,
-      {
-        page,
-        limit,
-        totalCount,
-      },
-    );
+      return this.handleSuccessResponse(
+        'Customer policies fetched successfully',
+        policies,
+        {
+          page,
+          limit,
+          totalCount,
+        },
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchPurchases({
+  /**
+   * Fetches a paginated list of all purchases.
+   *
+   * @param filters - Parameters to filter purchases.
+   * @returns A promise resolving to the list of purchases.
+   */
+  async fetchPurchases({
     page = 1,
     limit = 10,
     search,
@@ -591,72 +648,71 @@ class MyCoverAi {
     isRenewal?: boolean;
     createdAtStart?: string;
     createdAtEnd?: string;
-  }) {
-    if (createdAtStart) MyCoverAi.validateDate(createdAtStart);
-    if (createdAtEnd) MyCoverAi.validateDate(createdAtEnd);
-
-    const params = {
-      page,
-      limit,
-      search,
-      is_renewal: isRenewal,
-      created_at_start: createdAtStart,
-      created_at_end: createdAtEnd,
-    };
-
-    let purchases: any[] = [];
-    let totalCount = 0;
-
+  }): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(ENDPOINTS.getAllPurchases, {
+      if (createdAtStart) this.validateDate(createdAtStart);
+      if (createdAtEnd) this.validateDate(createdAtEnd);
+
+      const params = {
+        page,
+        limit,
+        search,
+        is_renewal: isRenewal,
+        created_at_start: createdAtStart,
+        created_at_end: createdAtEnd,
+      };
+
+      const { data } = await this.client.get(ENDPOINTS.getAllPurchases, {
         params,
       });
 
-      purchases = data?.purchases;
-      totalCount = data?.total_result || 0;
-    } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
-    }
+      const purchases = data?.purchases || [];
+      const totalCount = data?.total_result || 0;
 
-    return MyCoverAi.handleSuccessResponse(
-      'Purchases fetched successfully',
-      purchases,
-      {
-        page,
-        limit,
-        totalCount,
-      },
-    );
+      return this.handleSuccessResponse(
+        'Purchases fetched successfully',
+        purchases,
+        {
+          page,
+          limit,
+          totalCount,
+        },
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
   }
 
-  static async fetchOnePurchase(purchaseId: string) {
-    MyCoverAi.validateId(purchaseId, 'purchase');
-
-    let purchase: Record<string, any> = {};
-
+  /**
+   * Fetches details of a single purchase and sanitizes internal fields.
+   *
+   * @param purchaseId - The UUID of the purchase.
+   * @returns A promise resolving to the purchase details.
+   */
+  async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse> {
     try {
-      const { data } = await MyCoverAi.client.get(
+      this.validateId(purchaseId, 'purchase');
+
+      const { data } = await this.client.get(
         ENDPOINTS.getOnePurchase.replace(':id', purchaseId),
       );
 
-      // remove extra fields
-      if (data) {
-        'dividend' in data && delete data.dividend;
-        'renewal_history' in data && delete data.renewal_history;
+      const purchase = { ...data };
+      if (purchase) {
+        'dividend' in purchase && delete purchase.dividend;
+        'renewal_history' in purchase && delete purchase.renewal_history;
       }
 
-      purchase = data;
+      return this.handleSuccessResponse(
+        'Purchase fetched successfully',
+        purchase,
+      );
     } catch (error: any) {
-      return MyCoverAi.handleFailResponse(error);
+      return this.handleFailResponse(error);
     }
-
-    return MyCoverAi.handleSuccessResponse(
-      'Purchase fetched successfully',
-      purchase,
-    );
   }
 
-  private static handleSuccessResponse(
+  private handleSuccessResponse(
     message: string,
     data: any,
     meta?: Record<string, any>,
@@ -669,7 +725,7 @@ class MyCoverAi {
     };
   }
 
-  private static handleFailResponse(error: any): IMcaResponse {
+  private handleFailResponse(error: any): IMcaResponse {
     if (error instanceof FetchError) {
       return {
         code: 0,
@@ -677,31 +733,41 @@ class MyCoverAi {
       };
     }
 
-    return error;
+    if (error instanceof Error) {
+      return {
+        code: 0,
+        message: error.message,
+      };
+    }
+
+    return {
+      code: 0,
+      message:
+        typeof error === 'string' ? error : 'An unexpected error occurred',
+    };
   }
 
-  private static throwError(message: string): never {
+  private throwError(message: string): never {
     throw new Error(`SDK Error: ${message}`);
   }
 
-  private static validateId(id: string, name: string) {
+  private validateId(id: string, name: string) {
     if (!id) {
-      MyCoverAi.throwError(`${name} id is required`);
+      this.throwError(`${name} id is required`);
     }
 
     if (!isValidUUID(id)) {
-      MyCoverAi.throwError(`Invalid ${name} id`);
+      this.throwError(`Invalid ${name} id`);
     }
   }
 
-  private static validateDate(date: string) {
+  private validateDate(date: string) {
     if (!isValidDate(date)) {
-      MyCoverAi.throwError(
-        `Invalid date: ${date}. Must be in yyyy-mm-dd format`,
-      );
+      this.throwError(`Invalid date: ${date}. Must be in yyyy-mm-dd format`);
     }
   }
 }
 
-export { IBuyForm, IMcaResponse, PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
+export type { IBuyForm, IMcaResponse };
+export { PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
 export default MyCoverAi;

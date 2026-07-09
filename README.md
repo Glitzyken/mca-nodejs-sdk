@@ -3,7 +3,7 @@
 > Seamlessly integrate Africa's foremost insure-tech infrastructure into your Node.js application.
 
 [![npm version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://www.npmjs.com/package/mca-nodejs-sdk)
-[![license](https://img.shields.io/badge/license-ISC-green.svg)](LICENSE)
+[![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 
 ---
@@ -16,7 +16,7 @@
 >
 > This is an **unofficial**, community-maintained Node.js SDK for the [MyCover.ai](https://mycover.ai) API. It is **not officially affiliated with, endorsed by, or maintained by MyCover.ai**. It was built independently to make integrating with the MyCover.ai API easier for the Node.js community.
 >
-> "MyCover.ai" and any associated logos are trademarks of their respective owner and are used here solely to describe API compatibility. For official support, please refer to [MyCover.ai's official documentation](https://mycover.ai) or support channels.
+> "MyCover.ai" and any associated logos are trademarks of their respective owner and are used here solely to describe API compatibility. For official support, please refer to [MyCover.ai's official documentation](https://docs.mycover.ai) or support channels.
 >
 > This SDK is provided "as is," without warranty of any kind. See the [License](#license) section for full details.
 

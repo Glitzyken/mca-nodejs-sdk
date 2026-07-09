@@ -15,7 +15,8 @@
     "dev": "rm -rf dist && tsup --watch",
     "build": "rm -rf dist && tsup",
     "prepublishOnly": "npm run build",
-    "prepare": "husky install || true"
+    "prepare": "husky install || true",
+    "docs": "docsify serve docs"
   },
   "keywords": [
     "mycoverai",

@@ -97,7 +97,7 @@ npm install mca-nodejs-sdk
 ## Quick Start
 
 ```typescript
-import MyCoverAi, { PRODUCT_CATEGORIES, PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
+import MyCoverAi, { type PRODUCT_CATEGORIES, PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
 
 // 1. Initialize with your API key
 const mca = new MyCoverAi('your-api-key-here');

@@ -71,7 +71,7 @@
 
 ## Overview
 
-The **MyCover.ai Node.js SDK** is an unofficial, developer-friendly TypeScript library that wraps the [MyCover.ai v2 REST API](docs.mycover.ai). It provides a clean, strongly-typed, static class interface for working with:
+The **MyCover.ai Node.js SDK** is an unofficial, developer-friendly TypeScript library that wraps the [MyCover.ai v2 REST API](docs.mycover.ai). It provides a clean, strongly-typed class instance for working with:
 
 - **Products** — Browse and filter insurance products
 - **Premiums** — Calculate insurance premiums before purchase
@@ -100,15 +100,15 @@ npm install mca-nodejs-sdk
 import MyCoverAi, { PRODUCT_CATEGORIES, PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
 
 // 1. Initialize with your API key
-MyCoverAi.setApiKey('your-api-key-here');
+const mca = new MyCoverAi('your-api-key-here');
 
 // 2. (Optional) Scope requests to specific products or categories
-MyCoverAi
+mca
   .setProducts([PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto])
   .setCategory([PRODUCT_CATEGORIES.Auto]);
 
 // 3. Fetch products
-const response = await MyCoverAi.fetchProducts({ page: 1, limit: 10 });
+const response = await mca.fetchProducts({ page: 1, limit: 10 });
 
 if (response.code === 1) {
   console.log('Products:', response.data);
@@ -122,46 +122,18 @@ if (response.code === 1) {
 
 ## Configuration
 
-These three static methods configure the SDK. They support **method chaining** and must be called before any data-fetching methods.
-
----
-
-### `setApiKey`
-
-Authenticates the SDK with your MyCover.ai API key. This must be called **first** before making any API requests.
-
-**Signature:**
-
-```typescript
-static setApiKey(key: string): typeof MyCoverAi
-```
-
-**Parameters:**
-
-| Parameter | Type     | Required | Description                                                  |
-| --------- | -------- | -------- | ------------------------------------------------------------ |
-| `key`     | `string` | ✅ Yes    | Your MyCover.ai API key [here](https://docs.mycover.ai/getting-started/authentication). |
-
-**Returns:** `typeof MyCoverAi` — The class itself, enabling method chaining.
-
-**Throws:** `Error` with message `"SDK Error: API Key is required"` if `key` is empty or falsy.
-
-**Example:**
-
-```typescript
-MyCoverAi.setApiKey('MCASECK_TEST|xxxxxxxxxxxx');
-```
+These builder methods on the `MyCoverAi` instance customize the scope of subsequent product requests. They support **method chaining** and can be called on the instance.
 
 ---
 
 ### `setProducts`
 
-Scopes subsequent `fetchProducts` calls to a specific list of product IDs. Only valid UUIDs are retained; invalid ones are silently filtered out.
+Scopes subsequent `fetchProducts` calls to a specific list of product IDs. All product IDs must be valid UUIDs; validation fails and throws an error if any invalid UUID is passed.
 
 **Signature:**
 
 ```typescript
-static setProducts(productIds: string[]): typeof MyCoverAi
+setProducts(productIds: string[]): MyCoverAi
 ```
 
 **Parameters:**
@@ -170,9 +142,9 @@ static setProducts(productIds: string[]): typeof MyCoverAi
 | ------------ | ---------- | -------- | ------------------------------------------------------------ |
 | `productIds` | `string[]` | ✅ Yes    | An array of product UUIDs to filter by. Must have at least one. |
 
-**Returns:** `typeof MyCoverAi` — The class itself, enabling method chaining.
+**Returns:** `MyCoverAi` — The instance itself, enabling method chaining.
 
-**Throws:** `Error` with message `"SDK Error: Please provide at least one product ID"` if the array is empty or not provided.
+**Throws:** `Error` if the array is empty, not provided, or contains invalid UUIDs (in which case it lists the invalid IDs).
 
 > **Tip:** Use the exported `PRODUCTS_RECOMMENDED` constant to avoid hardcoding UUIDs.
 
@@ -181,7 +153,7 @@ static setProducts(productIds: string[]): typeof MyCoverAi
 ```typescript
 import { PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
 
-MyCoverAi.setProducts([
+mca.setProducts([
   PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto,
   PRODUCTS_RECOMMENDED.HEALTH.PrimeCare,
 ]);
@@ -191,14 +163,14 @@ MyCoverAi.setProducts([
 
 ### `setCategory`
 
-Scopes subsequent `fetchProducts` calls to one or more insurance categories. Only valid category values from `PRODUCT_CATEGORIES` are retained.
+Scopes subsequent `fetchProducts` calls to one or more insurance categories. All categories must be valid; validation fails and throws an error if any invalid category is passed.
 
 **Signature:**
 
 ```typescript
-static setCategory(
+setCategory(
   categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][]
-): typeof MyCoverAi
+): MyCoverAi
 ```
 
 **Parameters:**
@@ -207,16 +179,16 @@ static setCategory(
 | ------------ | ---------------------- | -------- | ----------------------------------------------------------- |
 | `categories` | `PRODUCT_CATEGORIES[]` | ✅ Yes    | An array of category UUID values from `PRODUCT_CATEGORIES`. |
 
-**Returns:** `typeof MyCoverAi` — The class itself, enabling method chaining.
+**Returns:** `MyCoverAi` — The instance itself, enabling method chaining.
 
-**Throws:** `Error` with message `"SDK Error: Please provide a category"` if the array is empty or not provided.
+**Throws:** `Error` if the array is empty, not provided, or contains invalid categories.
 
 **Example:**
 
 ```typescript
 import { PRODUCT_CATEGORIES } from 'mca-nodejs-sdk';
 
-MyCoverAi.setCategory([
+mca.setCategory([
   PRODUCT_CATEGORIES.Auto,
   PRODUCT_CATEGORIES.Health,
 ]);
@@ -354,7 +326,7 @@ const productId = PRODUCTS_RECOMMENDED.GADGET.DeviceCover;
 
 ## Methods
 
-All methods are **static** on the `MyCoverAi` class. They are all `async` (returning `Promise<IMcaResponse>`) unless noted otherwise.
+All methods are **instance methods** on a `MyCoverAi` instance. They are all `async` (returning `Promise<IMcaResponse>`) unless noted otherwise.
 
 ---
 
@@ -367,7 +339,7 @@ Retrieves a paginated list of insurance products. The results can be pre-filtere
 **Signature:**
 
 ```typescript
-static async fetchProducts(options: {
+async fetchProducts(options: {
   page?: number;
   limit?: number;
 }): Promise<IMcaResponse>
@@ -387,7 +359,7 @@ static async fetchProducts(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchProducts({ page: 1, limit: 20 });
+const response = await mca.fetchProducts({ page: 1, limit: 20 });
 
 if (response.code === 1) {
   const { data: products, meta } = response;
@@ -404,7 +376,7 @@ Retrieves a single insurance product by its UUID. Internal fields (e.g., `sharin
 **Signature:**
 
 ```typescript
-static async fetchOneProduct(productId: string): Promise<IMcaResponse>
+async fetchOneProduct(productId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
@@ -423,7 +395,7 @@ static async fetchOneProduct(productId: string): Promise<IMcaResponse>
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchOneProduct(
+const response = await mca.fetchOneProduct(
   PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto
 );
 
@@ -441,7 +413,7 @@ Retrieves a single utility object by its UUID. Utilities are supplementary data 
 **Signature:**
 
 ```typescript
-static async fetchOneUtility(utilityId: string): Promise<IMcaResponse>
+async fetchOneUtility(utilityId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
@@ -460,7 +432,7 @@ static async fetchOneUtility(utilityId: string): Promise<IMcaResponse>
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchOneUtility('some-utility-uuid');
+const response = await mca.fetchOneUtility('some-utility-uuid');
 
 if (response.code === 1) {
   console.log('Utility data:', response.data);
@@ -478,7 +450,7 @@ Calculates the insurance premium for a given product and form data before commit
 **Signature:**
 
 ```typescript
-static async calculatePremium(
+async calculatePremium(
   productId: string,
   form: Record<string, any>
 ): Promise<IMcaResponse>
@@ -501,7 +473,7 @@ static async calculatePremium(
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.calculatePremium(
+const response = await mca.calculatePremium(
   PRODUCTS_RECOMMENDED.AUTO.ComprehensiveAuto,
   {
     vehicle_value: 6500000,
@@ -523,7 +495,7 @@ Purchases an insurance policy for a customer. The `form` parameter must satisfy 
 **Signature:**
 
 ```typescript
-static async buy<T extends IBuyForm>(
+async buy<T extends IBuyForm>(
   productId: string,
   form: T
 ): Promise<IMcaResponse>
@@ -546,7 +518,7 @@ static async buy<T extends IBuyForm>(
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.buy(PRODUCTS_RECOMMENDED.LIFE.AccidentCover, {
+const response = await mca.buy(PRODUCTS_RECOMMENDED.LIFE.AccidentCover, {
   first_name: 'Amara',
   last_name: 'Okonkwo',
   email: 'amara@example.com',
@@ -573,7 +545,7 @@ Renews an existing insurance policy identified by its `policyId`.
 **Signature:**
 
 ```typescript
-static async renew(
+async renew(
   policyId: string,
   payload: Record<string, any>
 ): Promise<IMcaResponse>
@@ -596,7 +568,7 @@ static async renew(
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.renew('policy-uuid-here', {
+const response = await mca.renew('policy-uuid-here', {
   // product-specific renewal fields
 });
 
@@ -616,7 +588,7 @@ Retrieves a paginated, filterable list of insurance policies.
 **Signature:**
 
 ```typescript
-static async fetchPolicies(options: {
+async fetchPolicies(options: {
   page?: number;
   limit?: number;
   search?: string;
@@ -655,7 +627,7 @@ static async fetchPolicies(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchPolicies({
+const response = await mca.fetchPolicies({
   page: 1,
   limit: 10,
   isActive: true,
@@ -677,7 +649,7 @@ Retrieves a single policy by its UUID.
 **Signature:**
 
 ```typescript
-static async fetchOnePolicy(policyId: string): Promise<IMcaResponse>
+async fetchOnePolicy(policyId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
@@ -696,7 +668,7 @@ static async fetchOnePolicy(policyId: string): Promise<IMcaResponse>
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchOnePolicy('policy-uuid-here');
+const response = await mca.fetchOnePolicy('policy-uuid-here');
 
 if (response.code === 1) {
   console.log('Policy status:', response.data.is_active);
@@ -714,7 +686,7 @@ Retrieves a paginated, filterable list of insurance claims.
 **Signature:**
 
 ```typescript
-static async fetchClaims(options: {
+async fetchClaims(options: {
   page?: number;
   limit?: number;
   status?: string;
@@ -751,7 +723,7 @@ static async fetchClaims(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchClaims({
+const response = await mca.fetchClaims({
   status: 'Pending',
   startDate: '2026-06-01',
   endDate: '2026-06-30',
@@ -771,7 +743,7 @@ Retrieves a single claim by its UUID.
 **Signature:**
 
 ```typescript
-static async fetchOneClaim(claimId: string): Promise<IMcaResponse>
+async fetchOneClaim(claimId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
@@ -790,7 +762,7 @@ static async fetchOneClaim(claimId: string): Promise<IMcaResponse>
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchOneClaim('claim-uuid-here');
+const response = await mca.fetchOneClaim('claim-uuid-here');
 
 if (response.code === 1) {
   console.log('Claim status:', response.data.status);
@@ -808,7 +780,7 @@ Retrieves a paginated, filterable list of customers.
 **Signature:**
 
 ```typescript
-static async fetchCustomers(options: {
+async fetchCustomers(options: {
   page?: number;
   limit?: number;
   isActive?: boolean;
@@ -840,7 +812,7 @@ static async fetchCustomers(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchCustomers({
+const response = await mca.fetchCustomers({
   search: 'amara',
   isActive: true,
   createdAtStart: '2026-01-01',
@@ -860,7 +832,7 @@ Retrieves a single customer by their UUID.
 **Signature:**
 
 ```typescript
-static async fetchOneCustomer(customerId: string): Promise<IMcaResponse>
+async fetchOneCustomer(customerId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
@@ -879,7 +851,7 @@ static async fetchOneCustomer(customerId: string): Promise<IMcaResponse>
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchOneCustomer('customer-uuid-here');
+const response = await mca.fetchOneCustomer('customer-uuid-here');
 
 if (response.code === 1) {
   console.log('Customer email:', response.data.email);
@@ -895,7 +867,7 @@ Retrieves all purchases made by a specific customer, with optional pagination an
 **Signature:**
 
 ```typescript
-static async fetchCustomerPurchases(options: {
+async fetchCustomerPurchases(options: {
   customerId: string;
   page?: number;
   limit?: number;
@@ -924,7 +896,7 @@ static async fetchCustomerPurchases(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchCustomerPurchases({
+const response = await mca.fetchCustomerPurchases({
   customerId: 'customer-uuid-here',
   isRenewal: false,
   page: 1,
@@ -945,7 +917,7 @@ Retrieves all insurance policies belonging to a specific customer.
 **Signature:**
 
 ```typescript
-static async fetchCustomerPolicies(options: {
+async fetchCustomerPolicies(options: {
   customerId: string;
   page?: number;
   limit?: number;
@@ -972,7 +944,7 @@ static async fetchCustomerPolicies(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchCustomerPolicies({
+const response = await mca.fetchCustomerPolicies({
   customerId: 'customer-uuid-here',
 });
 
@@ -992,7 +964,7 @@ Retrieves a paginated, filterable list of all purchases across all customers.
 **Signature:**
 
 ```typescript
-static async fetchPurchases(options: {
+async fetchPurchases(options: {
   page?: number;
   limit?: number;
   search?: string;
@@ -1024,7 +996,7 @@ static async fetchPurchases(options: {
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchPurchases({
+const response = await mca.fetchPurchases({
   isRenewal: false,
   createdAtStart: '2026-01-01',
   createdAtEnd: '2026-03-31',
@@ -1045,7 +1017,7 @@ Retrieves a single purchase by its UUID. Internal fields (`dividend`, `renewal_h
 **Signature:**
 
 ```typescript
-static async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse>
+async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse>
 ```
 
 **Parameters:**
@@ -1064,7 +1036,7 @@ static async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse>
 **Example:**
 
 ```typescript
-const response = await MyCoverAi.fetchOnePurchase('purchase-uuid-here');
+const response = await mca.fetchOnePurchase('purchase-uuid-here');
 
 if (response.code === 1) {
   console.log('Purchase details:', response.data);
@@ -1075,56 +1047,41 @@ if (response.code === 1) {
 
 ## Error Handling
 
-The SDK has two layers of error handling:
+The SDK provides a consistent and unified error handling paradigm. All asynchronous API methods catch internal validation errors (such as invalid UUIDs or incorrect dates) and network/API failures, returning them inside the `IMcaResponse` payload with `code: 0`.
 
-### 1. Synchronous Validation Errors (thrown)
+### 1. API & Validation Errors (returned as `IMcaResponse`)
 
-Methods that validate their inputs (IDs, dates) will **throw** a JavaScript `Error` synchronously if validation fails. These should be caught with `try/catch` or `.catch()`:
+Asynchronous API methods do not throw. If validation fails or an API request fails, the method resolves to an `IMcaResponse` with `code: 0`:
+
+```typescript
+const response = await mca.fetchOneProduct('not-a-valid-uuid');
+
+if (response.code === 0) {
+  // e.g., "SDK Error: Invalid product id"
+  console.error('Error:', response.message);
+}
+```
+
+Validation error messages follow the format: `"SDK Error: <description>"`.
+API error messages follow the format: `"API Error: <description>"`.
+
+### 2. Synchronous Validation Errors (thrown)
+
+The constructor and builder methods (`setProducts`, `setCategory`) run synchronously and will **throw** a JavaScript `Error` if their parameters are missing or invalid:
 
 ```typescript
 try {
-  // Throws: "SDK Error: Invalid product id"
-  await MyCoverAi.fetchOneProduct('not-a-valid-uuid');
+  // Throws: "SDK Error: API Key is required"
+  const mca = new MyCoverAi('');
 } catch (err) {
-  console.error(err.message); // "SDK Error: Invalid product id"
+  console.error(err.message);
 }
-```
 
-All thrown errors follow the format: `"SDK Error: <description>"`.
-
-### 2. API Errors (returned as `IMcaResponse`)
-
-When an API request fails (e.g., 4xx / 5xx HTTP errors), the method **does not throw** — it returns an `IMcaResponse` with `code: 0`:
-
-```typescript
-const response = await MyCoverAi.buy(productId, form);
-
-if (response.code === 0) {
-  // e.g., "API Error: Unauthorized" or "API Error: Product not found"
-  console.error('API error:', response.message);
-}
-```
-
-API error messages follow the format: `"API Error: <description>"`.
-
-### Recommended Pattern
-
-```typescript
-async function purchasePolicy() {
-  try {
-    const response = await MyCoverAi.buy(productId, buyForm);
-
-    if (response.code === 1) {
-      // ✅ Success
-      return response.data;
-    } else {
-      // ⚠️ API-level failure
-      throw new Error(response.message);
-    }
-  } catch (err) {
-    // 🚫 SDK validation error OR network error
-    console.error('Failed to purchase policy:', err.message);
-  }
+try {
+  // Throws: "SDK Error: Invalid product ID(s): not-a-valid-uuid"
+  mca.setProducts(['not-a-valid-uuid']);
+} catch (err) {
+  console.error(err.message);
 }
 ```
 
@@ -1132,11 +1089,10 @@ async function purchasePolicy() {
 
 ## Fluent API (Method Chaining)
 
-The configuration methods (`setApiKey`, `setProducts`, `setCategory`) all return the `MyCoverAi` class itself, enabling a fluent, chainable initialization pattern:
+The configuration methods (`setProducts`, `setCategory`) return the `MyCoverAi` instance itself, enabling a fluent, chainable configuration pattern upon initialization:
 
 ```typescript
-MyCoverAi
-  .setApiKey('your-api-key')
+const mca = new MyCoverAi('your-api-key')
   .setProducts([
     PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto,
     PRODUCTS_RECOMMENDED.AUTO.CoronationComprehensiveAuto,
@@ -1144,10 +1100,10 @@ MyCoverAi
   .setCategory([PRODUCT_CATEGORIES.Auto]);
 
 // All subsequent fetchProducts() calls will be scoped to the above.
-const response = await MyCoverAi.fetchProducts({ limit: 5 });
+const response = await mca.fetchProducts({ limit: 5 });
 ```
 
-> **Important:** `setApiKey` should always be the first call. `setProducts` and `setCategory` only affect `fetchProducts` — they do not filter other endpoints like `fetchPolicies` or `fetchClaims`.
+> **Important:** `setProducts` and `setCategory` only affect `fetchProducts` — they do not filter other endpoints like `fetchPolicies` or `fetchClaims`.
 
 ---
 

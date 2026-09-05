@@ -1,6 +1,6 @@
 {
   "name": "mca-nodejs-sdk",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Unofficial Node.js SDK tailored for MyCover.ai. Seamlessly integrate and supercharge your insurance offerings with Africa's foremost insure-tech infrastructure.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

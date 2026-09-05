@@ -2,7 +2,7 @@
 
 > Seamlessly integrate Africa's foremost insure-tech infrastructure into your Node.js/Nest.js application.
 
-[![npm version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://www.npmjs.com/package/mca-nodejs-sdk)
+[![npm version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://www.npmjs.com/package/mca-nodejs-sdk)
 [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 
@@ -22,7 +22,7 @@
 
 ---
 
-## What's New in v2.1.0
+## What's New in v2.0.0
 
 - **Asynchronous Purchase & Renewal Flow**: The SDK now accommodates MyCover.ai's asynchronous pattern on policy creation and renewals. The `buy` and `renew` methods automatically handle request initiation and polling behind the scenes, resolving directly with the completed policy object.
 - **Wallet Balance**: Added `fetchWalletBalance` to query your MCA wallet balance across supported currencies (`NGN`, `USD`, `GHS`, `KES`, `XOF`).

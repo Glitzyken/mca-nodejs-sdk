@@ -88,35 +88,35 @@ describe('setProducts', () => {
 });
 
 // ===========================================================================
-// 3. setCategory
+// 3. setCategories
 // ===========================================================================
 
-describe('setCategory', () => {
+describe('setCategories', () => {
   it('should throw when no categories are provided', () => {
-    expect(() => mca.setCategory(undefined as any)).toThrow(
+    expect(() => mca.setCategories(undefined as any)).toThrow(
       'SDK Error: Please provide a category',
     );
   });
 
   it('should throw when an empty array is provided', () => {
-    expect(() => mca.setCategory([])).toThrow(
+    expect(() => mca.setCategories([])).toThrow(
       'SDK Error: Please provide a category',
     );
   });
 
   it('should return the instance (fluent interface) when valid categories are provided', () => {
-    const result = mca.setCategory([PRODUCT_CATEGORIES.Auto]);
+    const result = mca.setCategories([PRODUCT_CATEGORIES.Auto]);
     expect(result).toBe(mca);
   });
 
   it('should accept multiple valid categories', () => {
     expect(() =>
-      mca.setCategory([PRODUCT_CATEGORIES.Auto, PRODUCT_CATEGORIES.Health]),
+      mca.setCategories([PRODUCT_CATEGORIES.Auto, PRODUCT_CATEGORIES.Health]),
     ).not.toThrow();
   });
 
   it('should throw an error listing invalid categories when any is invalid', () => {
-    expect(() => mca.setCategory(['not-a-valid-category' as any])).toThrow(
+    expect(() => mca.setCategories(['not-a-valid-category' as any])).toThrow(
       'SDK Error: Invalid category(ies): not-a-valid-category',
     );
   });

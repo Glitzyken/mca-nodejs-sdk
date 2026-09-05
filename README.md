@@ -33,7 +33,7 @@
 - [Configuration](#configuration)
   - [setApiKey](#setapikey)
   - [setProducts](#setproducts)
-  - [setCategory](#setcategory)
+  - [setCategories](#setcategory)
 - [Interfaces](#interfaces)
   - [IMcaResponse](#imcaresponse)
   - [IBuyForm](#ibuyform)
@@ -105,7 +105,7 @@ const mca = new MyCoverAi('your-api-key-here');
 // 2. (Optional) Scope requests to specific products or categories
 mca
   .setProducts([PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto])
-  .setCategory([PRODUCT_CATEGORIES.Auto]);
+  .setCategories([PRODUCT_CATEGORIES.Auto]);
 
 // 3. Fetch products
 const response = await mca.fetchProducts({ page: 1, limit: 10 });
@@ -161,14 +161,14 @@ mca.setProducts([
 
 ---
 
-### `setCategory`
+### `setCategories`
 
 Scopes subsequent `fetchProducts` calls to one or more insurance categories. All categories must be valid; validation fails and throws an error if any invalid category is passed.
 
 **Signature:**
 
 ```typescript
-setCategory(
+setCategories(
   categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][]
 ): MyCoverAi
 ```
@@ -188,7 +188,7 @@ setCategory(
 ```typescript
 import { PRODUCT_CATEGORIES } from 'mca-nodejs-sdk';
 
-mca.setCategory([
+mca.setCategories([
   PRODUCT_CATEGORIES.Auto,
   PRODUCT_CATEGORIES.Health,
 ]);
@@ -278,7 +278,7 @@ interface IBuyForm {
 
 ### `PRODUCT_CATEGORIES`
 
-A map of human-readable category names to their corresponding UUIDs on the MyCover.ai platform. Use these values with [`setCategory`](#setcategory) and [`fetchPolicies`](#fetchpolicies).
+A map of human-readable category names to their corresponding UUIDs on the MyCover.ai platform. Use these values with [`setCategories`](#setcategory) and [`fetchPolicies`](#fetchpolicies).
 
 ```typescript
 import { PRODUCT_CATEGORIES } from 'mca-nodejs-sdk';
@@ -334,7 +334,7 @@ All methods are **instance methods** on a `MyCoverAi` instance. They are all `as
 
 ### `fetchProducts`
 
-Retrieves a paginated list of insurance products. The results can be pre-filtered by calling [`setProducts`](#setproducts) and/or [`setCategory`](#setcategory) before calling this method.
+Retrieves a paginated list of insurance products. The results can be pre-filtered by calling [`setProducts`](#setproducts) and/or [`setCategories`](#setcategory) before calling this method.
 
 **Signature:**
 
@@ -1067,7 +1067,7 @@ API error messages follow the format: `"API Error: <description>"`.
 
 ### 2. Synchronous Validation Errors (thrown)
 
-The constructor and builder methods (`setProducts`, `setCategory`) run synchronously and will **throw** a JavaScript `Error` if their parameters are missing or invalid:
+The constructor and builder methods (`setProducts`, `setCategories`) run synchronously and will **throw** a JavaScript `Error` if their parameters are missing or invalid:
 
 ```typescript
 try {
@@ -1089,7 +1089,7 @@ try {
 
 ## Fluent API (Method Chaining)
 
-The configuration methods (`setProducts`, `setCategory`) return the `MyCoverAi` instance itself, enabling a fluent, chainable configuration pattern upon initialization:
+The configuration methods (`setProducts`, `setCategories`) return the `MyCoverAi` instance itself, enabling a fluent, chainable configuration pattern upon initialization:
 
 ```typescript
 const mca = new MyCoverAi('your-api-key')
@@ -1097,13 +1097,13 @@ const mca = new MyCoverAi('your-api-key')
     PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto,
     PRODUCTS_RECOMMENDED.AUTO.CoronationComprehensiveAuto,
   ])
-  .setCategory([PRODUCT_CATEGORIES.Auto]);
+  .setCategories([PRODUCT_CATEGORIES.Auto]);
 
 // All subsequent fetchProducts() calls will be scoped to the above.
 const response = await mca.fetchProducts({ limit: 5 });
 ```
 
-> **Important:** `setProducts` and `setCategory` only affect `fetchProducts` — they do not filter other endpoints like `fetchPolicies` or `fetchClaims`.
+> **Important:** `setProducts` and `setCategories` only affect `fetchProducts` — they do not filter other endpoints like `fetchPolicies` or `fetchClaims`.
 
 ---
 

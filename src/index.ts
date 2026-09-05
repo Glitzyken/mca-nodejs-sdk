@@ -8,7 +8,8 @@ import { FetchClient, FetchError } from './utils/client';
 import { IBuyForm, IMcaResponse } from './shared/interface';
 
 class MyCoverAi {
-  private baseURL = 'https://v2.api.mycover.ai/v2';
+  // private baseURL = 'https://v2.api.mycover.ai/v2';
+  private baseURL = 'https://dev.v2.api.mycover.ai/v2';
   private apiKey: string;
   private myProducts: string[] = [];
   private selectedCategories: string[] = [];
@@ -67,7 +68,7 @@ class MyCoverAi {
    * @returns The current MyCoverAi instance for builder chaining.
    * @throws {Error} If categories is empty or contains invalid categories.
    */
-  setCategory(
+  setCategories(
     categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][],
   ) {
     if (!categories?.length) {

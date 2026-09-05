@@ -2,7 +2,7 @@
 
 > Seamlessly integrate Africa's foremost insure-tech infrastructure into your Node.js/Nest.js application.
 
-[![npm version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://www.npmjs.com/package/mca-nodejs-sdk)
+[![npm version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://www.npmjs.com/package/mca-nodejs-sdk)
 [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 
@@ -20,9 +20,18 @@
 >
 > This SDK is provided "as is," without warranty of any kind. See the [License](#license) section for full details.
 
+---
+
+## What's New in v2.1.0
+
+- **Asynchronous Purchase & Renewal Flow**: The SDK now accommodates MyCover.ai's asynchronous pattern on policy creation and renewals. The `buy` and `renew` methods automatically handle request initiation and polling behind the scenes, resolving directly with the completed policy object.
+- **Wallet Balance**: Added `fetchWalletBalance` to query your MCA wallet balance across supported currencies (`NGN`, `USD`, `GHS`, `KES`, `XOF`).
+- **Method Renaming**: Renamed `setCategory` to `setCategories` for setting category-level filters.
+
+---
 
 <!-- ============================================= -->
-<!-- 2. LICENSE SECTION -->
+<!-- 2. TABLE OF CONTENTS -->
 <!-- ============================================= -->
 
 ## Table of Contents
@@ -31,15 +40,16 @@
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
-  - [setApiKey](#setapikey)
   - [setProducts](#setproducts)
-  - [setCategories](#setcategory)
+  - [setCategories](#setcategories)
 - [Interfaces](#interfaces)
   - [IMcaResponse](#imcaresponse)
   - [IBuyForm](#ibuyform)
-- [Exported Constants](#exported-constants)
-  - [PRODUCT_CATEGORY](#product_categories)
+- [Exported Constants & Enums](#exported-constants--enums)
+  - [PRODUCT_CATEGORY](#product_category)
   - [PRODUCTS_RECOMMENDED](#products_recommended)
+  - [Currency](#currency)
+  - [Country](#country)
 - [Methods](#methods)
   - [Products](#products)
     - [fetchProducts](#fetchproducts)
@@ -47,8 +57,10 @@
     - [fetchOneUtility](#fetchoneutility)
   - [Insurance Transactions](#insurance-transactions)
     - [calculatePremium](#calculatepremium)
-    - [buy](#buy)
-    - [renew](#renew)
+    - [buy (Async Polled)](#buy)
+    - [renew (Async Polled)](#renew)
+  - [Wallets](#wallets)
+    - [fetchWalletBalance](#fetchwalletbalance)
   - [Policies](#policies)
     - [fetchPolicies](#fetchpolicies)
     - [fetchOnePolicy](#fetchonepolicy)
@@ -66,19 +78,24 @@
 - [Error Handling](#error-handling)
 - [Fluent API (Method Chaining)](#fluent-api-method-chaining)
 - [Running Tests](#running-tests)
+- [License](#license)
 
 ---
 
 ## Overview
 
-The **MyCover.ai Node.js SDK** is an unofficial, developer-friendly TypeScript library that wraps the [MyCover.ai v2 REST API](docs.mycover.ai). It provides a clean, strongly-typed class instance for working with:
+The **MyCover.ai Node.js SDK** is an unofficial, developer-friendly TypeScript library that wraps the [MyCover.ai v2 REST API](https://docs.mycover.ai). It provides a clean, strongly-typed class instance for working with:
 
 - **Products** — Browse and filter insurance products
 - **Premiums** — Calculate insurance premiums before purchase
-- **Purchases** — Buy and renew insurance policies
-- **Policies** — Manage active policies
+- **Purchases & Renewals** — Buy and renew insurance policies with built-in asynchronous request initialization and status polling
+- **Wallets** — Fetch your MCA wallet balances across multiple supported currencies
+- **Policies** — Manage and inspect active policies
 - **Claims** — Track and retrieve insurance claims
-- **Customers** — Manage customer records
+- **Customers** — Manage customer records and view purchase/policy histories
+
+> [!NOTE]
+> **Asynchronous Buy & Renewal Pattern**: MyCover.ai uses an asynchronous initiation and status verification flow for purchases and renewals. This SDK seamlessly abstracts this complexity—methods like `buy()` and `renew()` initiate the transaction, poll the status endpoint in the background until completion, and return the final policy payload directly.
 
 All methods return a consistent `IMcaResponse` object, making it trivial to handle both success and error states uniformly throughout your application.
 
@@ -97,7 +114,7 @@ npm install mca-nodejs-sdk
 ## Quick Start
 
 ```typescript
-import MyCoverAi, { PRODUCT_CATEGORY, PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
+import MyCoverAi, { PRODUCT_CATEGORY, PRODUCTS_RECOMMENDED, Currency } from 'mca-nodejs-sdk';
 
 // 1. Initialize with your API key
 const mca = new MyCoverAi('your-api-key-here');
@@ -115,6 +132,12 @@ if (response.code === 1) {
   console.log('Total:', response.meta?.totalCount);
 } else {
   console.error('Error:', response.message);
+}
+
+// 4. Check Wallet Balance
+const walletRes = await mca.fetchWalletBalance(Currency.NGN);
+if (walletRes.code === 1) {
+  console.log('Wallet Balance:', walletRes.data);
 }
 ```
 
@@ -211,7 +234,7 @@ interface IMcaResponse {
   message: string;
 
   /** The response payload. Present on success, absent on failure. */
-  data?: any;
+  data?: Record<string, any>;
 
   /**
    * Pagination metadata. Present on list endpoints.
@@ -225,9 +248,9 @@ interface IMcaResponse {
 
 | Field     | Type                  | Description                                                  |
 | --------- | --------------------- | ------------------------------------------------------------ |
-| `code`    | `1 \| 0`              | `1` on success, `0` on API-level failure.                    |
+| `code`    | `1 \| 0`              | `1` on success, `0` on API-level or validation failure.      |
 | `message` | `string`              | A human-readable status message (e.g., `"Products fetched successfully"`). |
-| `data`    | `any`                 | The primary response payload — an object or array depending on the endpoint. |
+| `data`    | `Record<string, any>` | The primary response payload — an object or array depending on the endpoint. |
 | `meta`    | `Record<string, any>` | Pagination info on list endpoints: `{ page, limit, totalCount }`. |
 
 ---
@@ -274,25 +297,25 @@ interface IBuyForm {
 
 ---
 
-## Exported Constants
+## Exported Constants & Enums
 
 ### `PRODUCT_CATEGORY`
 
-A map of human-readable category names to their corresponding UUIDs on the MyCover.ai platform. Use these values with [`setCategories`](#setcategory) and [`fetchPolicies`](#fetchpolicies).
+A map of human-readable category names to their corresponding UUIDs on the MyCover.ai platform. Use these values with [`setCategories`](#setcategories) and [`fetchPolicies`](#fetchpolicies).
 
 ```typescript
 import { PRODUCT_CATEGORY } from 'mca-nodejs-sdk';
 
 // Available keys:
-PRODUCT_CATEGORY.Package       // '14fb5968-48d2-49ac-88a8-0ee40e01fcca'
-PRODUCT_CATEGORY.Gadget        // '1e87194d-5eb1-48b6-8837-a9cbc78d4ec3'
+PRODUCT_CATEGORY.Package          // '14fb5968-48d2-49ac-88a8-0ee40e01fcca'
+PRODUCT_CATEGORY.Gadget           // '1e87194d-5eb1-48b6-8837-a9cbc78d4ec3'
 PRODUCT_CATEGORY['Agency Banking'] // '62d58862-38dd-4d9c-affc-95102e8fbc8b'
-PRODUCT_CATEGORY.Life          // '704f6261-3710-48e5-a894-ffc4d6bdc381'
-PRODUCT_CATEGORY['Credit Life'] // '814f6261-3710-48e5-a894-ffc4d6bdc381'
-PRODUCT_CATEGORY.Auto          // '978ced0d-0e05-4de6-b43a-b408c0e8b95e'
-PRODUCT_CATEGORY.Health        // '9d78bc79-3fa8-447d-b688-e42c1c6838a0'
-PRODUCT_CATEGORY.Content       // '9e9d5fe0-2129-41a5-9f44-9c9fe90b3855'
-PRODUCT_CATEGORY.Travel        // 'f3933c0d-ef7c-4287-90bd-744cf00c8426'
+PRODUCT_CATEGORY.Life             // '704f6261-3710-48e5-a894-ffc4d6bdc381'
+PRODUCT_CATEGORY['Credit Life']   // '814f6261-3710-48e5-a894-ffc4d6bdc381'
+PRODUCT_CATEGORY.Auto             // '978ced0d-0e05-4de6-b43a-b408c0e8b95e'
+PRODUCT_CATEGORY.Health           // '9d78bc79-3fa8-447d-b688-e42c1c6838a0'
+PRODUCT_CATEGORY.Content          // '9e9d5fe0-2129-41a5-9f44-9c9fe90b3855'
+PRODUCT_CATEGORY.Travel           // 'f3933c0d-ef7c-4287-90bd-744cf00c8426'
 ```
 
 ---
@@ -324,6 +347,40 @@ const productId = PRODUCTS_RECOMMENDED.GADGET.DeviceCover;
 
 ---
 
+### `Currency`
+
+An enum representing supported currencies for transactions and wallet balances.
+
+```typescript
+import { Currency } from 'mca-nodejs-sdk';
+
+// Available currencies:
+Currency.NGN // 'NGN' (Default)
+Currency.USD // 'USD'
+Currency.GHS // 'GHS'
+Currency.KES // 'KES'
+Currency.XOF // 'XOF'
+```
+
+---
+
+### `Country`
+
+An enum representing supported countries across the MyCover.ai infrastructure.
+
+```typescript
+import { Country } from 'mca-nodejs-sdk';
+
+// Available countries:
+Country.Nigeria      // 'Nigeria'
+Country.Ghana        // 'Ghana'
+Country.Kenya        // 'Kenya'
+Country.IvoryCoast   // 'IvoryCoast'
+Country.UnitedStates // 'UnitedStates'
+```
+
+---
+
 ## Methods
 
 All methods are **instance methods** on a `MyCoverAi` instance. They are all `async` (returning `Promise<IMcaResponse>`) unless noted otherwise.
@@ -334,7 +391,7 @@ All methods are **instance methods** on a `MyCoverAi` instance. They are all `as
 
 ### `fetchProducts`
 
-Retrieves a paginated list of insurance products. The results can be pre-filtered by calling [`setProducts`](#setproducts) and/or [`setCategories`](#setcategory) before calling this method.
+Retrieves a paginated list of insurance products. The results can be pre-filtered by calling [`setProducts`](#setproducts) and/or [`setCategories`](#setcategories) before calling this method.
 
 **Signature:**
 
@@ -371,7 +428,7 @@ if (response.code === 1) {
 
 ### `fetchOneProduct`
 
-Retrieves a single insurance product by its UUID. Internal fields (e.g., `sharing_formula`, `utilities`, `payment_providers`) are automatically stripped from the response.
+Retrieves a single insurance product by its UUID.
 
 **Signature:**
 
@@ -385,9 +442,9 @@ async fetchOneProduct(productId: string): Promise<IMcaResponse>
 | ----------- | -------- | -------- | ---------------------------------------- |
 | `productId` | `string` | ✅ Yes    | A valid UUID of the product to retrieve. |
 
-**Response `data`:** A single product object (internal fields stripped).
+**Response `data`:** A single product object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: product id is required"` — if `productId` is missing.
 - `"SDK Error: Invalid product id"` — if `productId` is not a valid UUID.
@@ -424,7 +481,7 @@ async fetchOneUtility(utilityId: string): Promise<IMcaResponse>
 
 **Response `data`:** A utility object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: utility id is required"` — if `utilityId` is missing.
 - `"SDK Error: Invalid utility id"` — if `utilityId` is not a valid UUID.
@@ -465,7 +522,7 @@ async calculatePremium(
 
 **Response `data`:** An object containing the calculated premium amount and currency (e.g., `{ price: 5000 }`).
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: product id is required"` — if `productId` is missing.
 - `"SDK Error: Invalid product id"` — if `productId` is not a valid UUID.
@@ -474,7 +531,7 @@ async calculatePremium(
 
 ```typescript
 const response = await mca.calculatePremium(
-  PRODUCTS_RECOMMENDED.AUTO.ComprehensiveAuto,
+  PRODUCTS_RECOMMENDED.AUTO.CoronationComprehensiveAuto,
   {
     vehicle_value: 6500000,
     vehicle_model: 'Camry',
@@ -490,7 +547,15 @@ if (response.code === 1) {
 
 ### `buy`
 
-Purchases an insurance policy for a customer. The `form` parameter must satisfy the `IBuyForm` interface, and may include additional product-specific fields.
+Purchases an insurance policy for a customer.
+
+> [!IMPORTANT]
+> **Asynchronous Flow Abstraction**:
+> MyCover.ai operates on an asynchronous request pattern for purchases. When `buy` is called:
+> 1. It initiates the purchase with the endpoint (`/products/buy/initiate`) and receives a `request_id`.
+> 2. It automatically polls the request status endpoint (`/products/requests/status/:id`) in the background at 500ms intervals (up to 30 attempts).
+> 3. Once the status transitions to `completed`, it resolves with the resulting `policy` data object.
+> 4. If the status transitions to `failed` or times out, it captures the error and returns a failure response cleanly.
 
 **Signature:**
 
@@ -508,12 +573,14 @@ async buy<T extends IBuyForm>(
 | `productId` | `string`             | ✅ Yes    | A valid UUID of the product to purchase.                     |
 | `form`      | `T extends IBuyForm` | ✅ Yes    | Customer and product-specific details. See [`IBuyForm`](#ibuyform). |
 
-**Response `data`:** A policy/purchase object including the policy number and status (e.g., `{ policy_number: "...", is_active: true }`).
+**Response `data`:** A policy object containing policy details (e.g., `policy_number`, `id`, `status`).
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: product id is required"` — if `productId` is missing.
 - `"SDK Error: Invalid product id"` — if `productId` is not a valid UUID.
+- `"API Error: <failure_reason>"` — if the asynchronous purchase request fails.
+- `"SDK Error: ⏰ Timed out waiting for completion"` — if polling exceeds maximum attempts.
 
 **Example:**
 
@@ -542,6 +609,10 @@ if (response.code === 1) {
 
 Renews an existing insurance policy identified by its `policyId`.
 
+> [!IMPORTANT]
+> **Asynchronous Flow Abstraction**:
+> Similar to `buy()`, `renew()` accommodates the MCA asynchronous renewal flow. It initiates the renewal request via `/products/renew/initiate/:id` and automatically polls `/products/requests/status/:id` until the renewal completes, returning the resulting policy payload.
+
 **Signature:**
 
 ```typescript
@@ -556,24 +627,74 @@ async renew(
 | Parameter  | Type                  | Required | Description                                                  |
 | ---------- | --------------------- | -------- | ------------------------------------------------------------ |
 | `policyId` | `string`              | ✅ Yes    | A valid UUID of the policy to renew.                         |
-| `payload`  | `Record<string, any>` | ✅ Yes    | Renewal-specific data required by the product (may be an empty object). |
+| `payload`  | `Record<string, any>` | ✅ Yes    | Renewal-specific data required by the product (can be an empty object). |
 
-**Response `data`:** A renewal confirmation object (e.g., `{ policy_number: "..." }`).
+**Response `data`:** The renewed policy object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: policy id is required"` — if `policyId` is missing.
 - `"SDK Error: Invalid policy id"` — if `policyId` is not a valid UUID.
+- `"API Error: <failure_reason>"` — if the asynchronous renewal request fails.
+- `"SDK Error: ⏰ Timed out waiting for completion"` — if polling exceeds maximum attempts.
 
 **Example:**
 
 ```typescript
 const response = await mca.renew('policy-uuid-here', {
-  // product-specific renewal fields
+  // product-specific renewal fields (if any)
 });
 
 if (response.code === 1) {
   console.log('Policy renewed:', response.data);
+} else {
+  console.error('Renewal failed:', response.message);
+}
+```
+
+---
+
+## Wallets
+
+### `fetchWalletBalance`
+
+Retrieves the wallet balance for your MyCover.ai account for a specified currency.
+
+**Signature:**
+
+```typescript
+async fetchWalletBalance(
+  currency: Currency = Currency.NGN
+): Promise<IMcaResponse>
+```
+
+**Parameters:**
+
+| Parameter  | Type       | Required | Default        | Description                                                  |
+| ---------- | ---------- | -------- | -------------- | ------------------------------------------------------------ |
+| `currency` | `Currency` | ❌ No     | `Currency.NGN` | The currency to fetch the balance for (`NGN`, `USD`, `GHS`, `KES`, `XOF`). |
+
+**Response `data`:** An object containing the wallet balance details.
+
+**Throws / Fail Response:**
+
+- `"SDK Error: Invalid currency"` — if an unrecognized currency is provided.
+
+**Example:**
+
+```typescript
+import { Currency } from 'mca-nodejs-sdk';
+
+// Fetch NGN balance (default)
+const ngnWallet = await mca.fetchWalletBalance();
+if (ngnWallet.code === 1) {
+  console.log('NGN Balance:', ngnWallet.data);
+}
+
+// Fetch USD balance
+const usdWallet = await mca.fetchWalletBalance(Currency.USD);
+if (usdWallet.code === 1) {
+  console.log('USD Balance:', usdWallet.data);
 }
 ```
 
@@ -619,7 +740,7 @@ async fetchPolicies(options: {
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: Invalid product id"` — if `productId` is provided but not a valid UUID.
 - `"SDK Error: Invalid date: ..."` — if any date filter is not in `yyyy-mm-dd` format.
@@ -660,7 +781,7 @@ async fetchOnePolicy(policyId: string): Promise<IMcaResponse>
 
 **Response `data`:** A single policy object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: policy id is required"` — if `policyId` is missing.
 - `"SDK Error: Invalid policy id"` — if `policyId` is not a valid UUID.
@@ -715,7 +836,7 @@ async fetchClaims(options: {
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: Invalid customer id"` — if `customerId` is provided but not a valid UUID.
 - `"SDK Error: Invalid date: ..."` — if `startDate` or `endDate` is not in `yyyy-mm-dd` format.
@@ -754,7 +875,7 @@ async fetchOneClaim(claimId: string): Promise<IMcaResponse>
 
 **Response `data`:** A single claim object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: claim id is required"` — if `claimId` is missing.
 - `"SDK Error: Invalid claim id"` — if `claimId` is not a valid UUID.
@@ -805,7 +926,7 @@ async fetchCustomers(options: {
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: Invalid date: ..."` — if `createdAtStart` or `createdAtEnd` is not in `yyyy-mm-dd` format.
 
@@ -843,7 +964,7 @@ async fetchOneCustomer(customerId: string): Promise<IMcaResponse>
 
 **Response `data`:** A single customer object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: customer id is required"` — if `customerId` is missing.
 - `"SDK Error: Invalid customer id"` — if `customerId` is not a valid UUID.
@@ -888,7 +1009,7 @@ async fetchCustomerPurchases(options: {
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: customer id is required"` — if `customerId` is missing.
 - `"SDK Error: Invalid customer id"` — if `customerId` is not a valid UUID.
@@ -936,7 +1057,7 @@ async fetchCustomerPolicies(options: {
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: customer id is required"` — if `customerId` is missing.
 - `"SDK Error: Invalid customer id"` — if `customerId` is not a valid UUID.
@@ -989,7 +1110,7 @@ async fetchPurchases(options: {
 
 **Response `meta`:** `{ page, limit, totalCount }`
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: Invalid date: ..."` — if `createdAtStart` or `createdAtEnd` is not in `yyyy-mm-dd` format.
 
@@ -1012,7 +1133,7 @@ if (response.code === 1) {
 
 ### `fetchOnePurchase`
 
-Retrieves a single purchase by its UUID. Internal fields (`dividend`, `renewal_history`) are automatically stripped from the response.
+Retrieves a single purchase by its UUID.
 
 **Signature:**
 
@@ -1026,9 +1147,9 @@ async fetchOnePurchase(purchaseId: string): Promise<IMcaResponse>
 | ------------ | -------- | -------- | ----------------------------------------- |
 | `purchaseId` | `string` | ✅ Yes    | A valid UUID of the purchase to retrieve. |
 
-**Response `data`:** A single purchase object (internal fields stripped).
+**Response `data`:** A single purchase object.
 
-**Throws:**
+**Throws / Fail Response:**
 
 - `"SDK Error: purchase id is required"` — if `purchaseId` is missing.
 - `"SDK Error: Invalid purchase id"` — if `purchaseId` is not a valid UUID.
@@ -1051,7 +1172,7 @@ The SDK provides a consistent and unified error handling paradigm. All asynchron
 
 ### 1. API & Validation Errors (returned as `IMcaResponse`)
 
-Asynchronous API methods do not throw. If validation fails or an API request fails, the method resolves to an `IMcaResponse` with `code: 0`:
+Asynchronous API methods do not throw unhandled exceptions. If validation fails or an API request fails, the method resolves to an `IMcaResponse` with `code: 0`:
 
 ```typescript
 const response = await mca.fetchOneProduct('not-a-valid-uuid');
@@ -1062,8 +1183,8 @@ if (response.code === 0) {
 }
 ```
 
-Validation error messages follow the format: `"SDK Error: <description>"`.
-API error messages follow the format: `"API Error: <description>"`.
+- Validation error messages follow the format: `"SDK Error: <description>"`.
+- API error messages follow the format: `"API Error: <description>"`.
 
 ### 2. Synchronous Validation Errors (thrown)
 

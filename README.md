@@ -38,7 +38,7 @@
   - [IMcaResponse](#imcaresponse)
   - [IBuyForm](#ibuyform)
 - [Exported Constants](#exported-constants)
-  - [PRODUCT_CATEGORIES](#product_categories)
+  - [PRODUCT_CATEGORY](#product_categories)
   - [PRODUCTS_RECOMMENDED](#products_recommended)
 - [Methods](#methods)
   - [Products](#products)
@@ -97,7 +97,7 @@ npm install mca-nodejs-sdk
 ## Quick Start
 
 ```typescript
-import MyCoverAi, { type PRODUCT_CATEGORIES, PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
+import MyCoverAi, { type PRODUCT_CATEGORY, PRODUCTS_RECOMMENDED } from 'mca-nodejs-sdk';
 
 // 1. Initialize with your API key
 const mca = new MyCoverAi('your-api-key-here');
@@ -105,7 +105,7 @@ const mca = new MyCoverAi('your-api-key-here');
 // 2. (Optional) Scope requests to specific products or categories
 mca
   .setProducts([PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto])
-  .setCategories([PRODUCT_CATEGORIES.Auto]);
+  .setCategories([PRODUCT_CATEGORY.Auto]);
 
 // 3. Fetch products
 const response = await mca.fetchProducts({ page: 1, limit: 10 });
@@ -169,7 +169,7 @@ Scopes subsequent `fetchProducts` calls to one or more insurance categories. All
 
 ```typescript
 setCategories(
-  categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][]
+  categories: (typeof PRODUCT_CATEGORY)[keyof typeof PRODUCT_CATEGORY][]
 ): MyCoverAi
 ```
 
@@ -177,7 +177,7 @@ setCategories(
 
 | Parameter    | Type                   | Required | Description                                                 |
 | ------------ | ---------------------- | -------- | ----------------------------------------------------------- |
-| `categories` | `PRODUCT_CATEGORIES[]` | ✅ Yes    | An array of category UUID values from `PRODUCT_CATEGORIES`. |
+| `categories` | `PRODUCT_CATEGORY[]` | ✅ Yes    | An array of category UUID values from `PRODUCT_CATEGORY`. |
 
 **Returns:** `MyCoverAi` — The instance itself, enabling method chaining.
 
@@ -186,11 +186,11 @@ setCategories(
 **Example:**
 
 ```typescript
-import { PRODUCT_CATEGORIES } from 'mca-nodejs-sdk';
+import { PRODUCT_CATEGORY } from 'mca-nodejs-sdk';
 
 mca.setCategories([
-  PRODUCT_CATEGORIES.Auto,
-  PRODUCT_CATEGORIES.Health,
+  PRODUCT_CATEGORY.Auto,
+  PRODUCT_CATEGORY.Health,
 ]);
 ```
 
@@ -276,23 +276,23 @@ interface IBuyForm {
 
 ## Exported Constants
 
-### `PRODUCT_CATEGORIES`
+### `PRODUCT_CATEGORY`
 
 A map of human-readable category names to their corresponding UUIDs on the MyCover.ai platform. Use these values with [`setCategories`](#setcategory) and [`fetchPolicies`](#fetchpolicies).
 
 ```typescript
-import { PRODUCT_CATEGORIES } from 'mca-nodejs-sdk';
+import { PRODUCT_CATEGORY } from 'mca-nodejs-sdk';
 
 // Available keys:
-PRODUCT_CATEGORIES.Package       // '14fb5968-48d2-49ac-88a8-0ee40e01fcca'
-PRODUCT_CATEGORIES.Gadget        // '1e87194d-5eb1-48b6-8837-a9cbc78d4ec3'
-PRODUCT_CATEGORIES['Agency Banking'] // '62d58862-38dd-4d9c-affc-95102e8fbc8b'
-PRODUCT_CATEGORIES.Life          // '704f6261-3710-48e5-a894-ffc4d6bdc381'
-PRODUCT_CATEGORIES['Credit Life'] // '814f6261-3710-48e5-a894-ffc4d6bdc381'
-PRODUCT_CATEGORIES.Auto          // '978ced0d-0e05-4de6-b43a-b408c0e8b95e'
-PRODUCT_CATEGORIES.Health        // '9d78bc79-3fa8-447d-b688-e42c1c6838a0'
-PRODUCT_CATEGORIES.Content       // '9e9d5fe0-2129-41a5-9f44-9c9fe90b3855'
-PRODUCT_CATEGORIES.Travel        // 'f3933c0d-ef7c-4287-90bd-744cf00c8426'
+PRODUCT_CATEGORY.Package       // '14fb5968-48d2-49ac-88a8-0ee40e01fcca'
+PRODUCT_CATEGORY.Gadget        // '1e87194d-5eb1-48b6-8837-a9cbc78d4ec3'
+PRODUCT_CATEGORY['Agency Banking'] // '62d58862-38dd-4d9c-affc-95102e8fbc8b'
+PRODUCT_CATEGORY.Life          // '704f6261-3710-48e5-a894-ffc4d6bdc381'
+PRODUCT_CATEGORY['Credit Life'] // '814f6261-3710-48e5-a894-ffc4d6bdc381'
+PRODUCT_CATEGORY.Auto          // '978ced0d-0e05-4de6-b43a-b408c0e8b95e'
+PRODUCT_CATEGORY.Health        // '9d78bc79-3fa8-447d-b688-e42c1c6838a0'
+PRODUCT_CATEGORY.Content       // '9e9d5fe0-2129-41a5-9f44-9c9fe90b3855'
+PRODUCT_CATEGORY.Travel        // 'f3933c0d-ef7c-4287-90bd-744cf00c8426'
 ```
 
 ---
@@ -1097,7 +1097,7 @@ const mca = new MyCoverAi('your-api-key')
     PRODUCTS_RECOMMENDED.AUTO.ThirdPartyAuto,
     PRODUCTS_RECOMMENDED.AUTO.CoronationComprehensiveAuto,
   ])
-  .setCategories([PRODUCT_CATEGORIES.Auto]);
+  .setCategories([PRODUCT_CATEGORY.Auto]);
 
 // All subsequent fetchProducts() calls will be scoped to the above.
 const response = await mca.fetchProducts({ limit: 5 });

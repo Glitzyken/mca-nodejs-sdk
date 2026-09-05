@@ -1,11 +1,13 @@
 import {
-  ENDPOINTS,
-  PRODUCT_CATEGORIES,
+  CURRENCY_ID,
+  ENDPOINT,
+  PRODUCT_CATEGORY,
   PRODUCTS_RECOMMENDED,
 } from './shared/constant';
 import { isValidDate, isValidUUID } from './utils/validators';
 import { FetchClient, FetchError } from './utils/client';
 import { IBuyForm, IMcaResponse } from './shared/interface';
+import { Currency, Country } from './shared/enum';
 
 class MyCoverAi {
   // private baseURL = 'https://v2.api.mycover.ai/v2';
@@ -69,7 +71,7 @@ class MyCoverAi {
    * @throws {Error} If categories is empty or contains invalid categories.
    */
   setCategories(
-    categories: (typeof PRODUCT_CATEGORIES)[keyof typeof PRODUCT_CATEGORIES][],
+    categories: (typeof PRODUCT_CATEGORY)[keyof typeof PRODUCT_CATEGORY][],
   ) {
     if (!categories?.length) {
       this.throwError('Please provide a category');
@@ -79,7 +81,7 @@ class MyCoverAi {
     const validCategories: string[] = [];
 
     for (const category of categories) {
-      if (Object.values(PRODUCT_CATEGORIES).includes(category)) {
+      if (Object.values(PRODUCT_CATEGORY).includes(category)) {
         validCategories.push(category);
       } else {
         invalidCategories.push(category);
@@ -114,7 +116,7 @@ class MyCoverAi {
         body: { ...form },
       };
 
-      const { data } = await this.client.post(ENDPOINTS.getPremium, payload);
+      const { data } = await this.client.post(ENDPOINT.getPremium, payload);
 
       return this.handleSuccessResponse(
         'Premium calculated successfully',
@@ -144,7 +146,7 @@ class MyCoverAi {
         product_id: productId,
       };
 
-      const { data } = await this.client.post(ENDPOINTS.buyProduct, payload);
+      const { data } = await this.client.post(ENDPOINT.buyProduct, payload);
 
       return this.handleSuccessResponse('Policy purchased successfully', data);
     } catch (error) {
@@ -171,7 +173,7 @@ class MyCoverAi {
       };
 
       const { data } = await this.client.post(
-        ENDPOINTS.renewProduct.replace(':id', policyId),
+        ENDPOINT.renewProduct.replace(':id', policyId),
         body,
       );
 
@@ -202,7 +204,7 @@ class MyCoverAi {
         category_id: this.selectedCategories,
       };
 
-      const { data } = await this.client.get(ENDPOINTS.getAllProducts, {
+      const { data } = await this.client.get(ENDPOINT.getAllProducts, {
         params,
       });
 
@@ -234,7 +236,7 @@ class MyCoverAi {
       this.validateId(productId, 'product');
 
       const { data } = await this.client.get(
-        ENDPOINTS.getOneProduct.replace(':id', productId),
+        ENDPOINT.getOneProduct.replace(':id', productId),
       );
 
       const product = { ...data };
@@ -269,7 +271,7 @@ class MyCoverAi {
       this.validateId(utilityId, 'utility');
 
       const { data } = await this.client.get(
-        ENDPOINTS.getUtility.replace(':id', utilityId),
+        ENDPOINT.getUtility.replace(':id', utilityId),
       );
 
       return this.handleSuccessResponse('Utility fetched successfully', data);
@@ -324,7 +326,7 @@ class MyCoverAi {
         expired_at_end: expiredAtEnd,
       };
 
-      const { data } = await this.client.get(ENDPOINTS.getAllPolicies, {
+      const { data } = await this.client.get(ENDPOINT.getAllPolicies, {
         params,
       });
 
@@ -356,7 +358,7 @@ class MyCoverAi {
       this.validateId(policyId, 'policy');
 
       const { data } = await this.client.get(
-        ENDPOINTS.getOnePolicy.replace(':id', policyId),
+        ENDPOINT.getOnePolicy.replace(':id', policyId),
       );
 
       const policy = { ...data };
@@ -413,7 +415,7 @@ class MyCoverAi {
         search,
       };
 
-      const { data } = await this.client.get(ENDPOINTS.getAllClaims, {
+      const { data } = await this.client.get(ENDPOINT.getAllClaims, {
         params,
       });
 
@@ -441,7 +443,7 @@ class MyCoverAi {
       this.validateId(claimId, 'claim');
 
       const { data } = await this.client.get(
-        ENDPOINTS.getOneClaim.replace(':id', claimId),
+        ENDPOINT.getOneClaim.replace(':id', claimId),
       );
 
       const claim = { ...data };
@@ -491,7 +493,7 @@ class MyCoverAi {
         search,
       };
 
-      const { data } = await this.client.get(ENDPOINTS.getAllCustomers, {
+      const { data } = await this.client.get(ENDPOINT.getAllCustomers, {
         params,
       });
 
@@ -523,7 +525,7 @@ class MyCoverAi {
       this.validateId(customerId, 'customer');
 
       const { data } = await this.client.get(
-        ENDPOINTS.getOneCustomer.replace(':id', customerId),
+        ENDPOINT.getOneCustomer.replace(':id', customerId),
       );
 
       return this.handleSuccessResponse('Customer fetched successfully', data);
@@ -559,7 +561,7 @@ class MyCoverAi {
       };
 
       const { data } = await this.client.get(
-        ENDPOINTS.getCustomerPurchases.replace(':id', customerId),
+        ENDPOINT.getCustomerPurchases.replace(':id', customerId),
         {
           params,
         },
@@ -606,7 +608,7 @@ class MyCoverAi {
       };
 
       const { data } = await this.client.get(
-        ENDPOINTS.getCustomerPolicies.replace(':id', customerId),
+        ENDPOINT.getCustomerPolicies.replace(':id', customerId),
         {
           params,
         },
@@ -663,7 +665,7 @@ class MyCoverAi {
         created_at_end: createdAtEnd,
       };
 
-      const { data } = await this.client.get(ENDPOINTS.getAllPurchases, {
+      const { data } = await this.client.get(ENDPOINT.getAllPurchases, {
         params,
       });
 
@@ -695,7 +697,7 @@ class MyCoverAi {
       this.validateId(purchaseId, 'purchase');
 
       const { data } = await this.client.get(
-        ENDPOINTS.getOnePurchase.replace(':id', purchaseId),
+        ENDPOINT.getOnePurchase.replace(':id', purchaseId),
       );
 
       const purchase = { ...data };
@@ -707,6 +709,37 @@ class MyCoverAi {
       return this.handleSuccessResponse(
         'Purchase fetched successfully',
         purchase,
+      );
+    } catch (error: any) {
+      return this.handleFailResponse(error);
+    }
+  }
+
+  /**
+   * Fetches the wallet balance for a specific account.
+   *
+   * @param currency - The currency of the wallet. Default is NGN.
+   * @returns A promise resolving to the wallet balance.
+   */
+  async fetchWalletBalance(
+    currency: Currency = Currency.NGN,
+  ): Promise<IMcaResponse> {
+    try {
+      const currencyId = CURRENCY_ID[currency];
+
+      if (!currencyId) this.throwError('Invalid currency');
+
+      const params = {
+        currency_id: currencyId,
+      };
+
+      const { data } = await this.client.get(ENDPOINT.fetchWalletBalance, {
+        params,
+      });
+
+      return this.handleSuccessResponse(
+        'Wallet balance fetched successfully',
+        data,
       );
     } catch (error: any) {
       return this.handleFailResponse(error);
@@ -770,5 +803,5 @@ class MyCoverAi {
 }
 
 export type { IBuyForm, IMcaResponse };
-export { PRODUCTS_RECOMMENDED, PRODUCT_CATEGORIES };
+export { PRODUCTS_RECOMMENDED, PRODUCT_CATEGORY, Currency, Country };
 export default MyCoverAi;

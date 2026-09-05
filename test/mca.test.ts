@@ -1,4 +1,4 @@
-import MyCoverAi, { PRODUCT_CATEGORIES } from '../src';
+import MyCoverAi, { PRODUCT_CATEGORY, Currency } from '../src';
 import { FetchClient } from '../src/utils/client';
 
 // ---------------------------------------------------------------------------
@@ -105,13 +105,13 @@ describe('setCategories', () => {
   });
 
   it('should return the instance (fluent interface) when valid categories are provided', () => {
-    const result = mca.setCategories([PRODUCT_CATEGORIES.Auto]);
+    const result = mca.setCategories([PRODUCT_CATEGORY.Auto]);
     expect(result).toBe(mca);
   });
 
   it('should accept multiple valid categories', () => {
     expect(() =>
-      mca.setCategories([PRODUCT_CATEGORIES.Auto, PRODUCT_CATEGORIES.Health]),
+      mca.setCategories([PRODUCT_CATEGORY.Auto, PRODUCT_CATEGORY.Health]),
     ).not.toThrow();
   });
 
@@ -833,5 +833,53 @@ describe('fetchOnePurchase', () => {
     expect(res.data).not.toHaveProperty('renewal_history');
     expect(res.data.id).toBe(VALID_UUID);
     expect(res.data.amount).toBe(15000);
+  });
+});
+
+// ===========================================================================
+// 20. fetchWalletBalance
+// ===========================================================================
+
+describe('fetchWalletBalance', () => {
+  it('should fetch wallet balance with default currency (NGN)', async () => {
+    const mockBalance = { balance: 50000, currency: 'NGN' };
+    mockGet.mockResolvedValue({ data: mockBalance });
+
+    const res = await mca.fetchWalletBalance();
+
+    expect(mockGet).toHaveBeenCalledWith('/wallets/balance', {
+      params: { currency_id: '6b3147f9-aa5b-4fd9-934d-ee5a179db989' },
+    });
+    expect(res.code).toBe(1);
+    expect(res.message).toBe('Wallet balance fetched successfully');
+    expect(res.data).toEqual(mockBalance);
+  });
+
+  it('should fetch wallet balance for a specific currency', async () => {
+    const mockBalance = { balance: 100, currency: 'USD' };
+    mockGet.mockResolvedValue({ data: mockBalance });
+
+    const res = await mca.fetchWalletBalance(Currency.USD);
+
+    expect(mockGet).toHaveBeenCalledWith('/wallets/balance', {
+      params: { currency_id: '0dadfc07-b983-4958-bc41-bced640a3783' },
+    });
+    expect(res.code).toBe(1);
+    expect(res.message).toBe('Wallet balance fetched successfully');
+    expect(res.data).toEqual(mockBalance);
+  });
+
+  it('should return failure response for invalid currency', async () => {
+    const res = await mca.fetchWalletBalance('INVALID' as any);
+    expect(res.code).toBe(0);
+    expect(res.message).toBe('SDK Error: Invalid currency');
+  });
+
+  it('should handle API errors gracefully', async () => {
+    mockGet.mockRejectedValue(new Error('Network error'));
+
+    const res = await mca.fetchWalletBalance(Currency.KES);
+    expect(res.code).toBe(0);
+    expect(res.message).toBe('Network error');
   });
 });

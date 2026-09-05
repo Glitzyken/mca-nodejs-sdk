@@ -68,7 +68,7 @@ export const PRODUCTS_RECOMMENDED = {
   },
 } as const;
 
-export const PRODUCT_CATEGORIES = {
+export const PRODUCT_CATEGORY = {
   Package: '14fb5968-48d2-49ac-88a8-0ee40e01fcca',
   Gadget: '1e87194d-5eb1-48b6-8837-a9cbc78d4ec3',
   'Agency Banking': '62d58862-38dd-4d9c-affc-95102e8fbc8b',
@@ -80,7 +80,23 @@ export const PRODUCT_CATEGORIES = {
   Travel: 'f3933c0d-ef7c-4287-90bd-744cf00c8426',
 } as const;
 
-export const ENDPOINTS = {
+export const CURRENCY_ID = {
+  USD: '0dadfc07-b983-4958-bc41-bced640a3783',
+  NGN: '6b3147f9-aa5b-4fd9-934d-ee5a179db989',
+  GHS: 'eeed9582-4c03-4986-9b39-6f9957a267d9',
+  KES: 'b070a6e9-b74c-4e02-9372-7fd5b157d887',
+  XOF: '841400f6-f575-4cb6-8ae6-45be833c77d2',
+} as const;
+
+export const COUNTRY_ID = {
+  UnitedStates: '7b7edb12-9047-4b6b-bdeb-a5da767b9ca6',
+  Nigeria: 'bb67ae67-53d1-4810-be05-33043115399c',
+  Ghana: 'a23b6928-4db6-4c26-b38c-7ebc6e499e6e',
+  Kenya: '74969399-9a23-4618-b69d-e063880a22a7',
+  IvoryCoast: '65d437ab-051c-4bfa-bdc8-92a1d318631a',
+};
+
+export const ENDPOINT = {
   // products
   getAllProducts: '/products/all',
   getOneProduct: '/products/:id',
@@ -107,6 +123,9 @@ export const ENDPOINTS = {
   getOneCustomer: '/customers/:id',
   getCustomerPurchases: '/customers/:id/purchases',
   getCustomerPolicies: '/customers/:id/policies',
+
+  // wallets
+  fetchWalletBalance: '/wallets/balance',
 
   // utilities
   getUtility: '/products/utility/:id',

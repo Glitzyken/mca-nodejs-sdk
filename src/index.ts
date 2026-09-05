@@ -6,12 +6,12 @@ import {
 } from './shared/constant';
 import { isValidDate, isValidUUID } from './utils/validators';
 import { FetchClient, FetchError } from './utils/client';
-import { IBuyForm, IMcaResponse } from './shared/interface';
+import { IApiResponse, IBuyForm, IMcaResponse } from './shared/interface';
 import { Currency, Country } from './shared/enum';
 
 class MyCoverAi {
-  // private baseURL = 'https://v2.api.mycover.ai/v2';
-  private baseURL = 'https://dev.v2.api.mycover.ai/v2';
+  private baseURL = 'https://v2.api.mycover.ai/v2';
+  // private baseURL = 'https://dev.v2.api.mycover.ai/v2';
   private apiKey: string;
   private myProducts: string[] = [];
   private selectedCategories: string[] = [];
@@ -146,7 +146,9 @@ class MyCoverAi {
         product_id: productId,
       };
 
-      const { data } = await this.client.post(ENDPOINT.buyProduct, payload);
+      const result = await this.client.post(ENDPOINT.initBuyProduct, payload);
+
+      const data = await this.poller(result);
 
       return this.handleSuccessResponse('Policy purchased successfully', data);
     } catch (error) {
@@ -158,24 +160,26 @@ class MyCoverAi {
    * Renews an existing policy by its ID.
    *
    * @param policyId - The UUID of the policy to renew.
-   * @param payload - Additional renewal options/fields.
+   * @param body - Additional renewal options/fields.
    * @returns A promise resolving to the renewal API response.
    */
   async renew(
     policyId: string,
-    payload: Record<string, any>,
+    body: Record<string, any>,
   ): Promise<IMcaResponse> {
     try {
       this.validateId(policyId, 'policy');
 
-      const body = {
-        ...payload,
+      const payload = {
+        ...body,
       };
 
-      const { data } = await this.client.post(
-        ENDPOINT.renewProduct.replace(':id', policyId),
-        body,
+      const result = await this.client.post(
+        ENDPOINT.initRenewProduct.replace(':id', policyId),
+        payload,
       );
+
+      const data = await this.poller(result);
 
       return this.handleSuccessResponse('Policy renewed successfully', data);
     } catch (error) {
@@ -746,6 +750,53 @@ class MyCoverAi {
     }
   }
 
+  private async poller(iApiResponse: IApiResponse) {
+    const { responseCode, data: initData } = iApiResponse;
+
+    const sleep = (ms: number) => {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    };
+
+    const maxAttempts = 30;
+    const pollingInterval = 500; // miliseconds
+
+    if (responseCode !== 1 || !initData?.request_id) {
+      this.throwError('Initial request did not return a pollable response.');
+    }
+
+    let responseData: Record<string, any> = {};
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await sleep(pollingInterval);
+      // console.log(`🔄 Polling attempt ${attempt}/${maxAttempts}`);
+
+      const pollResponse = await this.client.get(
+        ENDPOINT.getRequestStatus.replace(':id', initData.request_id),
+      );
+
+      const { data: pollData } = pollResponse;
+
+      if (!pollData) {
+        this.throwError('No response data from server');
+      }
+
+      if (pollData?.status === 'completed') {
+        responseData = pollData?.policy;
+        break;
+      }
+
+      if (pollData?.status === 'failed') {
+        this.throwApiError(pollData.failure_reason);
+      }
+
+      if (attempt === maxAttempts) {
+        this.throwError('⏰ Timed out waiting for completion');
+      }
+    }
+
+    return responseData;
+  }
+
   private handleSuccessResponse(
     message: string,
     data: any,
@@ -770,19 +821,25 @@ class MyCoverAi {
     if (error instanceof Error) {
       return {
         code: 0,
-        message: error.message,
+        message: `SDK Error: ${error.message}`,
       };
     }
 
     return {
       code: 0,
       message:
-        typeof error === 'string' ? error : 'An unexpected error occurred',
+        typeof error === 'string'
+          ? `SDK Error: ${error}`
+          : 'SDK Error: An unexpected error occurred',
     };
   }
 
   private throwError(message: string): never {
-    throw new Error(`SDK Error: ${message}`);
+    throw new Error(message);
+  }
+
+  private throwApiError(message: string) {
+    throw new FetchError(message);
   }
 
   private validateId(id: string, name: string) {

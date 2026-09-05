@@ -65,13 +65,13 @@ describe('MyCoverAi Constructor', () => {
 describe('setProducts', () => {
   it('should throw when no product IDs are provided', () => {
     expect(() => mca.setProducts(undefined as any)).toThrow(
-      'SDK Error: Please provide at least one product ID',
+      'Please provide at least one product ID',
     );
   });
 
   it('should throw when an empty array is provided', () => {
     expect(() => mca.setProducts([])).toThrow(
-      'SDK Error: Please provide at least one product ID',
+      'Please provide at least one product ID',
     );
   });
 
@@ -82,7 +82,7 @@ describe('setProducts', () => {
 
   it('should throw an error listing invalid UUIDs when any is invalid', () => {
     expect(() => mca.setProducts([INVALID_UUID, VALID_UUID])).toThrow(
-      `SDK Error: Invalid product ID(s): ${INVALID_UUID}`,
+      `Invalid product ID(s): ${INVALID_UUID}`,
     );
   });
 });
@@ -94,14 +94,12 @@ describe('setProducts', () => {
 describe('setCategories', () => {
   it('should throw when no categories are provided', () => {
     expect(() => mca.setCategories(undefined as any)).toThrow(
-      'SDK Error: Please provide a category',
+      'Please provide a category',
     );
   });
 
   it('should throw when an empty array is provided', () => {
-    expect(() => mca.setCategories([])).toThrow(
-      'SDK Error: Please provide a category',
-    );
+    expect(() => mca.setCategories([])).toThrow('Please provide a category');
   });
 
   it('should return the instance (fluent interface) when valid categories are provided', () => {
@@ -117,7 +115,7 @@ describe('setCategories', () => {
 
   it('should throw an error listing invalid categories when any is invalid', () => {
     expect(() => mca.setCategories(['not-a-valid-category' as any])).toThrow(
-      'SDK Error: Invalid category(ies): not-a-valid-category',
+      'Invalid category(ies): not-a-valid-category',
     );
   });
 });
@@ -158,7 +156,7 @@ describe('fetchProducts', () => {
     const res = await mca.fetchProducts({ page: 1, limit: 10 });
 
     expect(res.code).toBe(0);
-    expect(res.message).toBe('API down');
+    expect(res.message).toBe('SDK Error: API down');
   });
 
   it('should pass totalCount as 0 when total_count is missing', async () => {
@@ -214,8 +212,8 @@ describe('fetchOneProduct', () => {
     expect(res.data).not.toHaveProperty('dependency');
     expect(res.data).not.toHaveProperty('meta');
     expect(res.data).not.toHaveProperty('document_url');
-    expect(res.data.id).toBe(VALID_UUID);
-    expect(res.data.name).toBe('Device Cover');
+    expect(res.data?.id).toBe(VALID_UUID);
+    expect(res.data?.name).toBe('Device Cover');
   });
 });
 
@@ -323,7 +321,13 @@ describe('buy', () => {
 
   it('should return a success response after purchasing a policy', async () => {
     const fakePolicy = { policy_id: VALID_UUID, status: 'active' };
-    mockPost.mockResolvedValue({ data: fakePolicy });
+    mockPost.mockResolvedValue({
+      responseCode: 1,
+      data: { request_id: 'req-123' },
+    });
+    mockGet.mockResolvedValue({
+      data: { status: 'completed', policy: fakePolicy },
+    });
 
     const res = await mca.buy(VALID_UUID, buyForm);
 
@@ -333,7 +337,13 @@ describe('buy', () => {
   });
 
   it('should spread the form fields and attach product_id to the payload', async () => {
-    mockPost.mockResolvedValue({ data: {} });
+    mockPost.mockResolvedValue({
+      responseCode: 1,
+      data: { request_id: 'req-123' },
+    });
+    mockGet.mockResolvedValue({
+      data: { status: 'completed', policy: {} },
+    });
 
     await mca.buy(VALID_UUID, buyForm);
 
@@ -363,7 +373,13 @@ describe('renew', () => {
 
   it('should return a success response after renewing a policy', async () => {
     const fakeRenewal = { renewal_id: VALID_UUID };
-    mockPost.mockResolvedValue({ data: fakeRenewal });
+    mockPost.mockResolvedValue({
+      responseCode: 1,
+      data: { request_id: 'req-123' },
+    });
+    mockGet.mockResolvedValue({
+      data: { status: 'completed', policy: fakeRenewal },
+    });
 
     const res = await mca.renew(VALID_UUID, { extra_field: 'value' });
 
@@ -483,7 +499,7 @@ describe('fetchOnePolicy', () => {
     expect(res.data).not.toHaveProperty('mca_payload');
     expect(res.data).not.toHaveProperty('as_service_meta');
     expect(res.data).not.toHaveProperty('history');
-    expect(res.data.id).toBe(VALID_UUID);
+    expect(res.data?.id).toBe(VALID_UUID);
   });
 });
 
@@ -580,7 +596,7 @@ describe('fetchOneClaim', () => {
     expect(res.data).not.toHaveProperty('mca_payload');
     expect(res.data).not.toHaveProperty('as_service_meta');
     expect(res.data).not.toHaveProperty('history');
-    expect(res.data.id).toBe(VALID_UUID);
+    expect(res.data?.id).toBe(VALID_UUID);
   });
 });
 
@@ -831,8 +847,8 @@ describe('fetchOnePurchase', () => {
     expect(res.message).toBe('Purchase fetched successfully');
     expect(res.data).not.toHaveProperty('dividend');
     expect(res.data).not.toHaveProperty('renewal_history');
-    expect(res.data.id).toBe(VALID_UUID);
-    expect(res.data.amount).toBe(15000);
+    expect(res.data?.id).toBe(VALID_UUID);
+    expect(res.data?.amount).toBe(15000);
   });
 });
 
@@ -880,6 +896,6 @@ describe('fetchWalletBalance', () => {
 
     const res = await mca.fetchWalletBalance(Currency.KES);
     expect(res.code).toBe(0);
-    expect(res.message).toBe('Network error');
+    expect(res.message).toBe('SDK Error: Network error');
   });
 });

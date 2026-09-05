@@ -103,8 +103,9 @@ export const ENDPOINT = {
 
   // buy/renew
   getPremium: '/products/compute-price',
-  buyProduct: '/products/buy',
-  renewProduct: '/products/renew/:id',
+  getRequestStatus: '/products/requests/status/:id',
+  initBuyProduct: '/products/buy/initiate',
+  initRenewProduct: '/products/renew/initiate/:id',
 
   // policies
   getAllPolicies: '/policies',

@@ -1,14 +1,14 @@
 export interface IMcaResponse {
   code: number;
   message: string;
-  data?: any;
+  data?: Record<string, any>;
   meta?: Record<string, any>;
 }
 
 export interface IApiResponse {
-  responseCode: number;
+  responseCode: 0 | 1;
   responseText: string;
-  data?: any;
+  data?: Record<string, any>;
 }
 
 export interface IBuyForm {
